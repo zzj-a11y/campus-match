@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@theme {
+  /* ---- Accent: Teal ---- */
+  --color-accent-50: #f0fdfa;
+  --color-accent-100: #ccfbf1;
+  --color-accent-200: #99f6e4;
+  --color-accent-300: #5eeadb;
+  --color-accent-400: #2dd4bf;
+  --color-accent-500: #14b8a6;
+  --color-accent-600: #0d9488;
+  --color-accent-700: #0f766e;
+  --color-accent-800: #115e59;
+  --color-accent-900: #134e4a;
+
+  /* ---- Fonts ---- */
+  --font-display: "Cabinet Grotesk", "Geist", system-ui, sans-serif;
+  --font-body: "Geist", system-ui, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+
+  /* ---- Radius ---- */
+  --radius-card: 16px;
+  --radius-btn: 999px;
+  --radius-input: 8px;
+  --radius-pill: 12px;
+
+  /* ---- Shadows ---- */
+  --shadow-card: 0 1px 3px rgba(28, 25, 23, 0.06);
+  --shadow-card-hover: 0 4px 16px rgba(28, 25, 23, 0.08);
+  --shadow-match-card: 0 8px 32px rgba(28, 25, 23, 0.12);
+}
+
+html {
+  font-family: var(--font-body);
+  color: #1c1917;
+  background: #fafaf9;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Hide scrollbar for horizontal scroll steps */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Kanban drag */
+.kanban-card { cursor: grab; touch-action: none; }
+.kanban-card:active { cursor: grabbing; }

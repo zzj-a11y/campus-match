@@ -1,0 +1,319 @@
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
+import { useAuth } from "../context/AuthContext";
+import { registerUser } from "../lib/mockStore";
+
+const skillOptions = [
+  "Python", "Java", "C++", "JavaScript", "React", "Vue",
+  "PS", "AI", "Figma", "剪辑", "摄影", "写作",
+  "PPT", "Excel", "数据分析", "前端开发", "后端开发",
+  "机器学习", "演讲", "UI 设计", "文案", "商业计划书",
+];
+
+const goalOptions = [
+  { key: "study", label: "找到学习搭子" },
+  { key: "competition", label: "组队参加比赛" },
+  { key: "thesis", label: "找毕设队友" },
+  { key: "checkin", label: "日常打卡监督" },
+];
+
+const colleges = ["计算机学院", "经管学院", "设计学院", "人文学院", "理工学院", "法学院"];
+const grades = ["大一", "大二", "大三", "大四", "研一", "研二"];
+
+export default function Register() {
+  const navigate = useNavigate();
+  const { user, signUp } = useAuth();
+
+  // 已登录用户直接从技能步骤开始
+  const [step, setStep] = useState(user ? 1 : 0);
+  const [skills, setSkills] = useState([]);
+  const [goal, setGoal] = useState(null);
+  const [college, setCollege] = useState("");
+  const [grade, setGrade] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  // 仅新用户：邮箱 + 密码
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const totalSteps = 4; // 0=账号, 1=技能, 2=目标, 3=学院
+  const displayNum = user ? step : step; // step 0-3
+  const displayTotal = user ? 3 : 4;
+
+  const toggleSkill = (s) => {
+    if (skills.includes(s)) {
+      setSkills(skills.filter((x) => x !== s));
+    } else if (skills.length < 3) {
+      setSkills([...skills, s]);
+    }
+  };
+
+  const canNext = () => {
+    if (!user && step === 0) return email.includes("@") && password.length >= 6;
+    if ((user && step === 1) || (!user && step === 1)) return skills.length > 0;
+    if ((user && step === 2) || (!user && step === 2)) return goal !== null;
+    if ((user && step === 3) || (!user && step === 3)) return college && grade;
+    return false;
+  };
+
+  const handleNext = async () => {
+    // Step 0: 先创建 Supabase 账号
+    if (!user && step === 0) {
+      setError("");
+      setSaving(true);
+      try {
+        await signUp(email, password);
+        setSaving(false);
+        setStep(step + 1);
+      } catch (err) {
+        setSaving(false);
+        const msg = err.message;
+        if (msg.includes("already registered") || msg.includes("already exists")) {
+          setError("该邮箱已被注册，请直接登录");
+        } else if (msg.includes("password")) {
+          setError("密码至少需要 6 位字符");
+        } else {
+          setError(msg);
+        }
+        return;
+      }
+    } else {
+      setStep(step + 1);
+    }
+  };
+
+  const handleFinish = async () => {
+    setSaving(true);
+    setError("");
+
+    try {
+      // 统一走 api 层保存档案到 Supabase
+      await registerUser({ skills, goal, college, grade });
+
+      navigate("/match");
+    } catch (err) {
+      setError("保存失败，请重试");
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // 进度条显示（已登录隐藏 step 0）
+  const progressSteps = user ? [1, 2, 3] : [1, 2, 3, 4];
+  const currentDisplayStep = user ? step : step + 1;
+
+  return (
+    <div className="max-w-[680px] mx-auto px-6 py-12">
+      {/* Progress */}
+      <div className="flex items-center gap-2 mb-10">
+        {progressSteps.map((n, i) => (
+          <div key={n} className="flex items-center gap-2 flex-1">
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
+                currentDisplayStep >= n
+                  ? "bg-accent-600 text-white"
+                  : "bg-[#e7e5e4] text-[#78716c]"
+              }`}
+            >
+              {n}
+            </div>
+            {i < progressSteps.length - 1 && (
+              <div
+                className={`flex-1 h-0.5 rounded transition-colors ${
+                  currentDisplayStep > n ? "bg-accent-600" : "bg-[#e7e5e4]"
+                }`}
+              />
+            )}
+          </div>
+        ))}
+        <span className="text-sm text-[#78716c] ml-2">
+          步骤 {currentDisplayStep}/{displayTotal}
+        </span>
+      </div>
+
+      {/* Error */}
+      {error && (
+        <div className="mb-6 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+          {error}
+        </div>
+      )}
+
+      {/* Step 0: 创建账号（仅新用户） */}
+      {!user && step === 0 && (
+        <div>
+          <h2 className="font-display text-2xl font-bold text-[#1c1917]">
+            创建你的账号
+          </h2>
+          <p className="mt-1 text-sm text-[#78716c]">
+            使用学校邮箱注册，找到身边的同学
+          </p>
+          <div className="mt-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-[#1c1917] mb-1.5">
+                邮箱
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="yourname@school.edu.cn"
+                className="w-full px-4 py-3 rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#1c1917] mb-1.5">
+                密码
+              </label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="至少 6 位字符"
+                className="w-full px-4 py-3 rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Step 1: Skills (已登录用户的第一个步骤，新用户的第二个步骤) */}
+      {((user && step === 1) || (!user && step === 1)) && (
+        <div>
+          <h2 className="font-display text-2xl font-bold text-[#1c1917]">
+            选 3 个你最擅长的技能
+          </h2>
+          <p className="mt-1 text-sm text-[#78716c]">
+            已选 {skills.length}/3，点击标签选择
+          </p>
+          <div className="mt-6 flex flex-wrap gap-2">
+            {skillOptions.map((s) => {
+              const active = skills.includes(s);
+              return (
+                <button
+                  key={s}
+                  onClick={() => toggleSkill(s)}
+                  className={`px-4 py-2 text-sm font-medium rounded-lg border transition-all active:scale-95 ${
+                    active
+                      ? "bg-accent-100 text-accent-700 border-accent-300"
+                      : "bg-white text-[#78716c] border-[#e7e5e4] hover:border-[#a8a29e]"
+                  }`}
+                >
+                  {s}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Step 2: Goal */}
+      {((user && step === 2) || (!user && step === 2)) && (
+        <div>
+          <h2 className="font-display text-2xl font-bold text-[#1c1917]">
+            你当前的目标是什么？
+          </h2>
+          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {goalOptions.map((g) => {
+              const active = goal === g.key;
+              return (
+                <button
+                  key={g.key}
+                  onClick={() => setGoal(g.key)}
+                  className={`p-4 rounded-xl border text-left transition-all active:scale-[0.98] ${
+                    active
+                      ? "bg-accent-100 text-accent-700 border-accent-400"
+                      : "bg-white text-[#1c1917] border-[#e7e5e4] hover:border-[#a8a29e]"
+                  }`}
+                >
+                  <span className="font-semibold">{g.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Step 3: School info */}
+      {((user && step === 3) || (!user && step === 3)) && (
+        <div>
+          <h2 className="font-display text-2xl font-bold text-[#1c1917]">
+            学院 / 年级
+          </h2>
+          <p className="mt-1 text-sm text-[#78716c]">
+            帮你找到身边的队友
+          </p>
+          <div className="mt-6 flex flex-col sm:flex-row gap-4">
+            <select
+              value={college}
+              onChange={(e) => setCollege(e.target.value)}
+              className="flex-1 px-4 py-3 rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] text-sm focus:outline-none focus:ring-2 focus:ring-accent-400"
+            >
+              <option value="">选择学院</option>
+              {colleges.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+            <select
+              value={grade}
+              onChange={(e) => setGrade(e.target.value)}
+              className="flex-1 px-4 py-3 rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] text-sm focus:outline-none focus:ring-2 focus:ring-accent-400"
+            >
+              <option value="">选择年级</option>
+              {grades.map((g) => (
+                <option key={g} value={g}>{g}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
+
+      {/* Navigation */}
+      <div className="mt-10 flex items-center justify-between">
+        {step > 0 ? (
+          <button
+            onClick={() => setStep(step - 1)}
+            className="inline-flex items-center gap-1 px-4 py-2 text-sm font-medium text-[#78716c] rounded-full hover:text-[#1c1917] transition-colors"
+          >
+            <ArrowLeft size={16} /> 上一步
+          </button>
+        ) : (
+          <div />
+        )}
+
+        {!user && (
+          <p className="text-sm text-[#78716c]">
+            已有账号？{" "}
+            <Link to="/login" className="text-accent-600 font-medium hover:underline">
+              去登录
+            </Link>
+          </p>
+        )}
+
+        {((user && step < 3) || (!user && step < 3)) ? (
+          <button
+            disabled={!canNext() || saving}
+            onClick={handleNext}
+            className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-accent-600 rounded-full disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent-700 active:scale-[0.98] transition-all"
+          >
+            {saving ? "创建中..." : "下一步"}
+            {!saving && <ArrowRight size={16} weight="bold" />}
+          </button>
+        ) : (
+          <button
+            disabled={!canNext() || saving}
+            onClick={handleFinish}
+            className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-accent-600 rounded-full disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent-700 active:scale-[0.98] transition-all"
+          >
+            {saving ? "保存中..." : "完成，开始匹配"}
+            {!saving && <ArrowRight size={16} weight="bold" />}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
