@@ -29,9 +29,16 @@
   --radius-input: 8px;
   --radius-pill: 12px;
 
-  /* ---- Shadows ---- */
-  --shadow-card: 0 1px 3px rgba(28, 25, 23, 0.06);
-  --shadow-card-hover: 0 4px 16px rgba(28, 25, 23, 0.08);
+  /* ---- Warm Accent: Amber（新增）---- */
+  --color-warm-50: #fff7ed;
+  --color-warm-100: #ffedd5;
+  --color-warm-200: #fed7aa;
+  --color-warm-500: #f97316;
+  --color-warm-600: #ea580c;
+
+  /* ---- Shadows: 加深 ---- */
+  --shadow-card: 0 2px 8px rgba(28, 25, 23, 0.06);
+  --shadow-card-hover: 0 6px 24px rgba(28, 25, 23, 0.10);
   --shadow-match-card: 0 8px 32px rgba(28, 25, 23, 0.12);
 }
 
@@ -46,6 +53,21 @@ html {
 body {
   margin: 0;
   min-height: 100dvh;
+  position: relative;
+}
+
+/* 顶部淡 Teal 渐变光晕 + 微点阵纹理 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 200px at 50% 0%, #f0fdfa 0%, transparent 100%),
+    radial-gradient(circle, #d6d3d1 0.5px, transparent 0.5px);
+  background-size: 100% 100%, 18px 18px;
+  opacity: 0.5;
 }
 
 .font-display {
@@ -93,4 +115,33 @@ body {
 }
 .msg-enter {
   animation: msg-in 0.25s ease-out;
+}
+
+/* Card hover — 全局卡片微上浮 */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card-hover);
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-hover {
+    transition: none;
+  }
+  .card-hover:hover {
+    transform: none;
+  }
+}
+
+/* Section divider — 渐变分割线 */
+.section-divider {
+  position: relative;
+}
+.section-divider::after {
+  content: "";
+  display: block;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, #e7e5e4 30%, #e7e5e4 70%, transparent 100%);
+  margin-top: 4rem;
 }
