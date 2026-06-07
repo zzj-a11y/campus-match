@@ -65,6 +65,10 @@ export default function Register() {
   const [customInput, setCustomInput] = useState("");
   const allSkillOptions = [...skillOptions, ...customSkills];
 
+  // 自定义目标
+  const [customGoal, setCustomGoal] = useState("");
+  const [customGoalActive, setCustomGoalActive] = useState(false);
+
   const totalSteps = 4;
   const displayTotal = user ? 3 : 4;
 
@@ -101,7 +105,7 @@ export default function Register() {
   const canNext = () => {
     if (!user && step === 0) return name.trim().length > 0 && email.includes("@") && password.length >= 6;
     if ((user && step === 1) || (!user && step === 1)) return skills.length > 0;
-    if ((user && step === 2) || (!user && step === 2)) return goal !== null;
+    if ((user && step === 2) || (!user && step === 2)) return goal !== null || (customGoalActive && customGoal.trim().length > 0);
     if ((user && step === 3) || (!user && step === 3)) return college && grade;
     return false;
   };
@@ -117,11 +121,15 @@ export default function Register() {
         setStep(step + 1);
       } catch (err) {
         setSaving(false);
-        const msg = err instanceof Error ? err.message : String(err);
-        if (msg.includes("已被注册")) {
+        const msg = err?.message || (err instanceof Error ? err.message : "") || "注册失败，请重试";
+        if (typeof msg === "string" && msg.includes("已被注册")) {
           setError("该邮箱已被注册，请直接登录");
+        } else if (typeof msg === "string" && msg.includes("already registered")) {
+          setError("该邮箱已被注册，请直接登录");
+        } else if (typeof msg === "string" && msg.includes("Password")) {
+          setError("密码长度至少 6 位");
         } else {
-          setError(msg);
+          setError(typeof msg === "string" ? msg : "注册失败，请重试");
         }
         return;
       }
@@ -135,13 +143,13 @@ export default function Register() {
     setError("");
 
     try {
-      await registerUser({ skills, goal, college, grade });
+      const finalGoal = customGoalActive ? customGoal.trim() : goal;
+      await registerUser({ skills, goal: finalGoal, college, grade });
 
       navigate("/match");
     } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : String(err);
-      setError(msg || "保存失败，请重试");
+      const msg = err?.message || (err instanceof Error ? err.message : "") || "保存失败，请重试";
+      setError(typeof msg === "string" ? msg : "保存失败，请重试");
       console.error("注册保存失败:", err);
     } finally {
       setSaving(false);
@@ -318,7 +326,7 @@ export default function Register() {
               return (
                 <button
                   key={g.key}
-                  onClick={() => setGoal(g.key)}
+                  onClick={() => { setGoal(g.key); setCustomGoalActive(false); }}
                   className={`p-4 rounded-xl border text-left transition-all active:scale-[0.98] ${
                     active
                       ? "bg-accent-100 text-accent-700 border-accent-400"
@@ -329,7 +337,35 @@ export default function Register() {
                 </button>
               );
             })}
+            {/* 自定义目标 */}
+            <button
+              onClick={() => { setCustomGoalActive(true); setGoal(null); }}
+              className={`p-4 rounded-xl border text-left transition-all active:scale-[0.98] ${
+                customGoalActive
+                  ? "bg-accent-100 text-accent-700 border-accent-400"
+                  : "bg-white text-[#1c1917] border-[#e7e5e4] hover:border-[#a8a29e]"
+              }`}
+            >
+              <span className="font-semibold">✏️ 自定义目标…</span>
+            </button>
           </div>
+          {customGoalActive && (
+            <div className="mt-3 flex items-center gap-2">
+              <input
+                type="text"
+                value={customGoal}
+                onChange={(e) => setCustomGoal(e.target.value)}
+                placeholder="输入你的目标，如：考公准备、出国留学…"
+                className="flex-1 px-4 py-2.5 text-sm rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow"
+              />
+              <button
+                onClick={() => { setCustomGoal(""); setCustomGoalActive(false); }}
+                className="px-3 py-2.5 text-sm text-[#78716c] hover:text-[#1c1917] transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -369,7 +405,7 @@ export default function Register() {
 
       {/* Navigation */}
       <div className="mt-10 flex items-center justify-between">
-        {step > 0 ? (
+        {step > (user ? 1 : 0) ? (
           <button
             onClick={() => setStep(step - 1)}
             className="inline-flex items-center gap-1 px-4 py-2 text-sm font-medium text-[#78716c] rounded-full hover:text-[#1c1917] transition-colors"
