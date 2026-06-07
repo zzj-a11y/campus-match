@@ -32,23 +32,30 @@ export default function Match() {
     let cancelled = false;
     const slowTimer = setTimeout(() => { if (!cancelled) setSlowHint(true); }, 8000);
     (async () => {
-      const u = await getCurrentUser();
-      if (cancelled) return;
-      if (!u) {
-        navigate("/register", { replace: true });
-        return;
+      try {
+        const u = await getCurrentUser();
+        if (cancelled) return;
+        if (!u) {
+          navigate("/register", { replace: true });
+          return;
+        }
+        setUser(u);
+        const [list, matches] = await Promise.all([
+          getCandidates().catch((e) => { console.error("getCandidates failed:", e); return []; }),
+          getUserMatches().catch((e) => { console.error("getUserMatches failed:", e); return []; }),
+        ]);
+        if (cancelled) return;
+        clearTimeout(slowTimer);
+        setCandidates(list);
+        setMyMatches(matches);
+      } catch (e) {
+        console.error("Match load failed:", e);
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+          setSlowHint(false);
+        }
       }
-      setUser(u);
-      const [list, matches] = await Promise.all([
-        getCandidates(),
-        getUserMatches(),
-      ]);
-      if (cancelled) return;
-      clearTimeout(slowTimer);
-      setCandidates(list);
-      setMyMatches(matches);
-      setLoading(false);
-      setSlowHint(false);
     })();
     return () => { cancelled = true; clearTimeout(slowTimer); };
   }, []);

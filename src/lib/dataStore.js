@@ -113,6 +113,7 @@ const swipedLocal = new Set();
 // ---- 匹配 ----
 
 export async function getCandidates() {
+  try {
   const user = await getCurrentUser();
   if (!user) return [];
 
@@ -120,10 +121,12 @@ export async function getCandidates() {
   const userGoal = user.goal;
   const userCollege = user.college;
 
-  const { data: myMatches } = await supabase
+  const { data: myMatches, error: mmError } = await supabase
     .from("matches")
     .select("user_a, user_b, status")
     .or(`user_a.eq.${user.id},user_b.eq.${user.id}`);
+
+  if (mmError) { console.error("getCandidates matches error:", mmError); return []; }
 
   const excludeIds = new Set([user.id]);
   if (myMatches) {
@@ -134,10 +137,11 @@ export async function getCandidates() {
   }
   swipedLocal.forEach((id) => excludeIds.add(id));
 
-  const { data: allProfiles } = await supabase
+  const { data: allProfiles, error: apError } = await supabase
     .from("profiles")
     .select("user_id, name, college, grade, skills, goal");
 
+  if (apError) { console.error("getCandidates profiles error:", apError); return []; }
   if (!allProfiles) return [];
 
   const candidates = allProfiles
@@ -173,6 +177,7 @@ export async function getCandidates() {
 
   candidates.sort((a, b) => b.matchRate - a.matchRate);
   return candidates;
+  } catch (e) { console.error("getCandidates crash:", e); return []; }
 }
 
 export async function swipeRight(userId) {
@@ -311,15 +316,17 @@ export function subscribeMessages(matchId, currentUserId, onNewMessage) {
 // ---- 匹配列表 ----
 
 export async function getUserMatches() {
+  try {
   const user = await getCurrentUser();
   if (!user) return [];
 
-  const { data: matches } = await supabase
+  const { data: matches, error: mError } = await supabase
     .from("matches")
     .select("id, user_a, user_b")
     .eq("status", "matched")
     .or(`user_a.eq.${user.id},user_b.eq.${user.id}`);
 
+  if (mError) { console.error("getUserMatches error:", mError); return []; }
   if (!matches) return [];
 
   const result = [];
@@ -345,6 +352,7 @@ export async function getUserMatches() {
   }
 
   return result;
+  } catch (e) { console.error("getUserMatches crash:", e); return []; }
 }
 
 // ---- 项目 ----
