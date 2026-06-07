@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, useMotionValue, useTransform, AnimatePresence } from "motion/react";
 import { ArrowLeft, X, Heart, Faders, Sparkle, ChatCenteredDots } from "@phosphor-icons/react";
@@ -10,8 +10,8 @@ export default function Match() {
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(true);
   const [index, setIndex] = useState(0);
-  const [exitX, setExitX] = useState(0);
-  const [exitDir, setExitDir] = useState(null);
+  const exitX = useMotionValue(0);
+  const exitRotate = useMotionValue(0);
   const [matchResult, setMatchResult] = useState(null);
   const [showMatchPopup, setShowMatchPopup] = useState(false);
   const [myMatches, setMyMatches] = useState([]);
@@ -47,16 +47,18 @@ export default function Match() {
 
   const current = candidates[index];
 
-  // 键盘支持
+  // 键盘支持（用 ref 避免 index 变化重建 listener）
+  const handleSwipeRef = useRef(null);
+
   useEffect(() => {
     const onKey = (e) => {
       if (showMatchPopup || loading) return;
-      if (e.key === "ArrowLeft") handleSwipe("left");
-      if (e.key === "ArrowRight") handleSwipe("right");
+      if (e.key === "ArrowLeft" && handleSwipeRef.current) handleSwipeRef.current("left");
+      if (e.key === "ArrowRight" && handleSwipeRef.current) handleSwipeRef.current("right");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [index, showMatchPopup, loading]);
+  }, [showMatchPopup, loading]);
 
   if (loading) {
     return (
@@ -71,9 +73,12 @@ export default function Match() {
   const handleSwipe = async (direction) => {
     if (!current || showMatchPopup) return;
 
-    setExitDir(direction);
-    setExitX(direction === "right" ? 400 : -400);
+    // 命令式飞出动画 — 零 React 渲染
+    const targetX = direction === "right" ? 400 : -400;
+    exitX.set(targetX);
+    exitRotate.set(direction === "right" ? 15 : -15);
 
+    // 数据操作并行
     if (direction === "right") {
       const result = await swipeRight(current.id);
       if (result && result.targetUser) {
@@ -84,13 +89,15 @@ export default function Match() {
       await swipeLeft(current.id);
     }
 
+    // 飞出完成后切换卡片 — 唯一一次 setState
     setTimeout(() => {
       setIndex((i) => i + 1);
-      setExitX(0);
-      setExitDir(null);
+      exitX.set(0);
+      exitRotate.set(0);
       dragX.set(0);
-    }, 300);
+    }, 250);
   };
+  handleSwipeRef.current = handleSwipe;
 
   const handleDragEnd = (_, info) => {
     if (info.offset.x > 100) handleSwipe("right");
@@ -190,7 +197,7 @@ export default function Match() {
         {candidates.slice(index + 1, index + 3).map((c, i) => (
           <div
             key={c.id}
-            className="absolute inset-0 rounded-[20px] border border-[#e7e5e4] bg-white p-6 flex flex-col"
+            className="absolute inset-0 rounded-[20px] border border-[#e7e5e4] bg-white p-6 flex flex-col will-change-transform"
             style={{
               transform: `scale(${0.95 - i * 0.03}) translateY(${(i + 1) * 6}px)`,
               zIndex: 1 - i,
@@ -223,8 +230,8 @@ export default function Match() {
             exit={{
               x: exitX,
               opacity: 0,
-              rotate: exitDir === "right" ? 15 : -15,
-              transition: { duration: 0.25, ease: "easeOut" },
+              rotate: exitRotate,
+              transition: { duration: 0.2, ease: "easeOut" },
             }}
             style={{
               x: dragX,
@@ -236,7 +243,7 @@ export default function Match() {
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.8}
             onDragEnd={handleDragEnd}
-            className="absolute inset-0"
+            className="absolute inset-0 will-change-transform"
           >
             <div className="relative h-full rounded-[20px] border border-[#e7e5e4] bg-white p-6 shadow-[0_8px_32px_rgba(28,25,23,0.10)] flex flex-col">
               <motion.div
