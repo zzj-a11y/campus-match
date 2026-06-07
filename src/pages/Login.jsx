@@ -25,13 +25,19 @@ export default function Login() {
         navigate("/register", { replace: true });
       }
     } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      if (msg.includes("邮箱或密码错误")) {
-        setError("邮箱或密码错误，请重试");
-      } else if (msg.includes("not confirmed")) {
-        setError("邮箱尚未验证，请先点击邮件中的确认链接");
+      const msg = err?.message || String(err || "");
+      if (typeof msg === "string") {
+        if (msg.includes("Invalid login") || msg.includes("Invalid Login")) {
+          setError("邮箱或密码错误，请重试");
+        } else if (msg.includes("not confirmed") || msg.includes("Email not confirmed")) {
+          setError("邮箱尚未验证，请先点击邮件中的确认链接");
+        } else if (msg.includes("rate limit") || msg.includes("Rate limit")) {
+          setError("操作太频繁，请稍后再试");
+        } else {
+          setError("登录失败，请检查网络后重试");
+        }
       } else {
-        setError(msg);
+        setError("登录失败，请检查网络后重试");
       }
     } finally {
       setLoading(false);
@@ -87,6 +93,12 @@ export default function Login() {
             placeholder="至少 6 位字符"
             className="w-full px-4 py-3 rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow"
           />
+        </div>
+
+        <div className="text-right">
+          <span className="text-xs text-[#a8a29e] cursor-default" title="本演示项目暂不支持自助重置密码">
+            忘记密码？联系管理员
+          </span>
         </div>
 
         <button

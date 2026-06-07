@@ -77,6 +77,7 @@ export function AuthProvider({ children }) {
   // 登出
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
+    localStorage.removeItem("campus_current_user");
     setUser(null);
   }, []);
 

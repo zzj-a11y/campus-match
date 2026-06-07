@@ -48,6 +48,11 @@ export default function Register() {
 
   // 已登录用户直接从技能步骤开始
   const [step, setStep] = useState(user ? 1 : 0);
+
+  // 防止刷新后 step=0 但 user 已恢复 → 自动跳到 step 1
+  useEffect(() => {
+    if (user && step === 0) setStep(1);
+  }, [user]);
   const [skills, setSkills] = useState([]);
   const [goal, setGoal] = useState(null);
   const [college, setCollege] = useState("");
@@ -59,6 +64,8 @@ export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   // 自定义技能标签
   const [customSkills, setCustomSkills] = useState([]);
@@ -70,7 +77,9 @@ export default function Register() {
   const [customGoalActive, setCustomGoalActive] = useState(false);
 
   const totalSteps = 4;
-  const displayTotal = user ? 3 : 4;
+  const displayTotal = 4;
+  // 已登录用户自动完成 step 0（账号创建）
+  const completedSteps = user ? 1 : 0;
 
   const toggleSkill = (s) => {
     if (skills.includes(s)) {
@@ -103,7 +112,7 @@ export default function Register() {
   };
 
   const canNext = () => {
-    if (!user && step === 0) return name.trim().length > 0 && email.includes("@") && password.length >= 6;
+    if (!user && step === 0) return name.trim().length >= 1 && email.includes("@") && email.includes(".") && password.length >= 6 && password === passwordConfirm;
     if ((user && step === 1) || (!user && step === 1)) return skills.length > 0;
     if ((user && step === 2) || (!user && step === 2)) return goal !== null || (customGoalActive && customGoal.trim().length > 0);
     if ((user && step === 3) || (!user && step === 3)) return college && grade;
@@ -164,9 +173,9 @@ export default function Register() {
     }
   };
 
-  // 进度条显示（已登录隐藏 step 0）
-  const progressSteps = user ? [1, 2, 3] : [1, 2, 3, 4];
-  const currentDisplayStep = user ? step : step + 1;
+  // 进度条——始终 4 步
+  const progressSteps = [1, 2, 3, 4];
+  const currentDisplayStep = step + 1;
 
   return (
     <div className="max-w-[680px] mx-auto px-6 py-12 relative">
@@ -187,30 +196,38 @@ export default function Register() {
       </div>
 
       {/* Progress */}
-      <div className="flex items-center gap-2 mb-10">
-        {progressSteps.map((n, i) => (
-          <div key={n} className="flex items-center gap-2 flex-1">
-            <div
-              className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
-                currentDisplayStep >= n
-                  ? "bg-accent-600 text-white"
-                  : "bg-[#e7e5e4] text-[#78716c]"
-              }`}
-            >
-              {n}
-            </div>
-            {i < progressSteps.length - 1 && (
+      <div className="mb-10">
+        <div className="flex items-center gap-2">
+          {progressSteps.map((n, i) => (
+            <div key={n} className="flex items-center gap-2 flex-1">
               <div
-                className={`flex-1 h-0.5 rounded transition-colors ${
-                  currentDisplayStep > n ? "bg-accent-600" : "bg-[#e7e5e4]"
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
+                  currentDisplayStep >= n
+                    ? "bg-accent-600 text-white"
+                    : "bg-[#e7e5e4] text-[#78716c]"
                 }`}
-              />
-            )}
-          </div>
-        ))}
-        <span className="text-sm text-[#78716c] ml-2">
-          步骤 {currentDisplayStep}/{displayTotal}
-        </span>
+              >
+                {n}
+              </div>
+              {i < progressSteps.length - 1 && (
+                <div
+                  className={`flex-1 h-0.5 rounded transition-colors ${
+                    currentDisplayStep > n ? "bg-accent-600" : "bg-[#e7e5e4]"
+                  }`}
+                />
+              )}
+            </div>
+          ))}
+          <span className="text-sm text-[#78716c] ml-2">
+            {currentDisplayStep}/{displayTotal}
+          </span>
+        </div>
+        {/* 步骤标签 */}
+        <div className="flex mt-2 text-[11px] text-[#a8a29e]">
+          {["账号", "技能", "目标", "学院"].map((label, i) => (
+            <span key={label} className="flex-1 text-center">{label}</span>
+          ))}
+        </div>
       </div>
 
       {/* Error */}
@@ -240,6 +257,7 @@ export default function Register() {
                 onChange={(e) => setName(e.target.value)}
                 required
                 placeholder="怎么称呼你？"
+                maxLength={20}
                 className="w-full px-4 py-3 rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow"
               />
             </div>
@@ -260,14 +278,43 @@ export default function Register() {
               <label className="block text-sm font-medium text-[#1c1917] mb-1.5">
                 密码
               </label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  placeholder="至少 6 位字符"
+                  className="w-full px-4 py-3 pr-12 rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a8a29e] hover:text-[#78716c] text-xs font-medium transition-colors"
+                >
+                  {showPassword ? "隐藏" : "显示"}
+                </button>
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-[#1c1917] mb-1.5">
+                确认密码
+              </label>
               <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                type={showPassword ? "text" : "password"}
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
                 required
-                placeholder="至少 6 位字符"
-                className="w-full px-4 py-3 rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow"
+                placeholder="再次输入密码"
+                className={`w-full px-4 py-3 rounded-lg border bg-white text-[#1c1917] text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow ${
+                  passwordConfirm && password !== passwordConfirm
+                    ? "border-red-300 ring-1 ring-red-200"
+                    : "border-[#e7e5e4]"
+                }`}
               />
+              {passwordConfirm && password !== passwordConfirm && (
+                <p className="mt-1 text-xs text-red-500">两次输入的密码不一致</p>
+              )}
             </div>
           </div>
         </div>
@@ -277,10 +324,10 @@ export default function Register() {
       {((user && step === 1) || (!user && step === 1)) && (
         <div>
           <h2 className="font-display text-2xl font-bold text-[#1c1917]">
-            选 3 个你最擅长的技能
+            选 1-3 个你最擅长的技能
           </h2>
           <p className="mt-1 text-sm text-[#78716c]">
-            已选 {skills.length}/3，点击标签选择
+            已选 {skills.length}/3，至少选 1 个
           </p>
 
           {/* 预设标签 */}
@@ -440,14 +487,12 @@ export default function Register() {
           <div />
         )}
 
-        {!user && (
-          <p className="text-sm text-[#78716c]">
-            已有账号？{" "}
-            <Link to="/login" className="text-accent-600 font-medium hover:underline">
-              去登录
-            </Link>
-          </p>
-        )}
+        <p className="text-sm text-[#78716c]">
+          已有账号？{" "}
+          <Link to="/login" className="text-accent-600 font-medium hover:underline">
+            去登录
+          </Link>
+        </p>
 
         {((user && step < 3) || (!user && step < 3)) ? (
           <button

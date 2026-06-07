@@ -120,10 +120,13 @@ export default function Match() {
           <Heart size={28} weight="fill" />
         </div>
         <h2 className="mt-6 font-display text-2xl font-bold text-[#1c1917]">
-          今日推荐已全部浏览
+          {myMatches.length === 0 ? "欢迎加入校园智搭！" : "今日推荐已全部浏览"}
         </h2>
         <p className="mt-2 text-[#78716c]">
-          去招募广场看看更多队友，或稍后再来发现新人
+          {myMatches.length === 0
+            ? "暂时没有推荐人选，先去招募广场发帖，或邀请同学一起加入吧"
+            : "去招募广场看看更多队友，或稍后再来发现新人"
+          }
         </p>
 
         {/* 已有对话 */}
