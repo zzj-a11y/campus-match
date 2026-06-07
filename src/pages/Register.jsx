@@ -58,6 +58,7 @@ export default function Register() {
   const [college, setCollege] = useState("");
   const [grade, setGrade] = useState("");
   const [saving, setSaving] = useState(false);
+  const [slowHint, setSlowHint] = useState(false);
   const [error, setError] = useState("");
 
   // 仅新用户：邮箱 + 密码 + 姓名
@@ -124,12 +125,18 @@ export default function Register() {
     if (!user && step === 0) {
       setError("");
       setSaving(true);
+      setSlowHint(false);
+      // 冷启动提示：Supabase 免费计划首次请求需唤醒数据库（8-30 秒）
+      const slowTimer = setTimeout(() => setSlowHint(true), 8000);
       try {
         await signUp(email, password, name.trim());
+        clearTimeout(slowTimer);
         setSaving(false);
         setStep(step + 1);
       } catch (err) {
+        clearTimeout(slowTimer);
         setSaving(false);
+        setSlowHint(false);
         const msg = err?.message || (err instanceof Error ? err.message : "") || "注册失败，请重试";
         if (typeof msg === "string" && msg.includes("已被注册")) {
           setError("该邮箱已被注册，请直接登录");
@@ -149,14 +156,18 @@ export default function Register() {
 
   const handleFinish = async () => {
     setSaving(true);
+    setSlowHint(false);
     setError("");
 
+    const slowTimer = setTimeout(() => setSlowHint(true), 8000);
     try {
       const finalGoal = customGoalActive ? customGoal.trim() : goal;
       await registerUser({ skills, goal: finalGoal, college, grade });
+      clearTimeout(slowTimer);
 
       navigate("/match");
     } catch (err) {
+      clearTimeout(slowTimer);
       let msg = err?.message || (err instanceof Error ? err.message : "") || "保存失败，请重试";
       // Supabase 原始错误转中文
       if (typeof msg === "string") {
@@ -500,7 +511,7 @@ export default function Register() {
             onClick={handleNext}
             className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-accent-600 rounded-full disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent-700 active:scale-[0.98] transition-all"
           >
-            {saving ? "创建中..." : "下一步"}
+            {saving ? (slowHint ? "服务器启动中..." : "创建中...") : "下一步"}
             {!saving && <ArrowRight size={16} weight="bold" />}
           </button>
         ) : (
@@ -509,7 +520,7 @@ export default function Register() {
             onClick={handleFinish}
             className="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-accent-600 rounded-full disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent-700 active:scale-[0.98] transition-all"
           >
-            {saving ? "保存中..." : "完成，开始匹配"}
+            {saving ? (slowHint ? "服务器启动中..." : "保存中...") : "完成，开始匹配"}
             {!saving && <ArrowRight size={16} weight="bold" />}
           </button>
         )}

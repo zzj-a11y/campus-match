@@ -34,7 +34,7 @@ export function AuthProvider({ children }) {
       .from("profiles")
       .select("name, college, grade, skills, goal")
       .eq("user_id", authUser.id)
-      .single();
+      .maybeSingle();  // maybeSingle: 0 行返回 null，不抛异常
 
     const userData = {
       id: authUser.id,
