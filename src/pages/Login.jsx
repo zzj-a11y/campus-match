@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { supabase } from "../lib/supabase";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -17,25 +16,19 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const { user } = await signIn(email, password);
+      const userData = await signIn(email, password);
 
       // 检查是否已有技能档案 → 决定跳转目标
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("skills")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      if (profile?.skills?.length > 0) {
+      if (userData?.skills?.length > 0) {
         navigate("/match", { replace: true });
       } else {
         navigate("/register", { replace: true });
       }
     } catch (err) {
-      const msg = err.message;
-      if (msg.includes("Invalid login credentials")) {
+      const msg = err instanceof Error ? err.message : String(err);
+      if (msg.includes("邮箱或密码错误")) {
         setError("邮箱或密码错误，请重试");
-      } else if (msg.includes("Email not confirmed")) {
+      } else if (msg.includes("not confirmed")) {
         setError("邮箱尚未验证，请先点击邮件中的确认链接");
       } else {
         setError(msg);
@@ -72,7 +65,7 @@ export default function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            placeholder="yourname@school.edu.cn"
+            placeholder="yourname@example.com"
             className="w-full px-4 py-3 rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow"
           />
         </div>
@@ -109,6 +102,15 @@ export default function Login() {
           立即注册
         </Link>
       </p>
+
+      {/* 种子用户提示 */}
+      <div className="mt-8 p-4 rounded-xl bg-stone-50 border border-[#e7e5e4]">
+        <p className="text-xs text-[#78716c] leading-relaxed">
+          💡 试试种子账号体验匹配：<br />
+          <span className="font-mono text-accent-600">zhang@campus.edu</span> / 123456<br />
+          或注册新账号加入广师大小伙伴
+        </p>
+      </div>
     </div>
   );
 }

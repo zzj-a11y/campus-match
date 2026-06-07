@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight } from "@phosphor-icons/react";
+import { ArrowLeft, ArrowRight, Plus, X } from "@phosphor-icons/react";
 import { useAuth } from "../context/AuthContext";
 import { registerUser } from "../lib/mockStore";
 
 const skillOptions = [
   "Python", "Java", "C++", "JavaScript", "React", "Vue",
-  "PS", "AI", "Figma", "剪辑", "摄影", "写作",
-  "PPT", "Excel", "数据分析", "前端开发", "后端开发",
-  "机器学习", "演讲", "UI 设计", "文案", "商业计划书",
+  "Spring Boot", "MySQL", "机器学习", "数据分析",
+  "PS", "AI", "Figma", "UI设计", "动画", "剪辑", "摄影",
+  "PPT", "Excel", "写作", "文案", "演讲", "商业计划书",
+  "CAD", "机器人工程", "嵌入式开发", "单片机", "网络安全",
+  "英语", "日语", "翻译", "金融分析", "法律检索",
 ];
 
 const goalOptions = [
@@ -18,7 +20,26 @@ const goalOptions = [
   { key: "checkin", label: "日常打卡监督" },
 ];
 
-const colleges = ["计算机学院", "经管学院", "设计学院", "人文学院", "理工学院", "法学院"];
+const colleges = [
+  "计算机科学学院",
+  "机电学院",
+  "自动化学院",
+  "汽车与交通工程学院",
+  "电子与信息学院",
+  "光电工程学院",
+  "数学与系统科学学院",
+  "管理学院",
+  "财经学院",
+  "外国语学院",
+  "文学与传媒学院",
+  "法学与知识产权学院",
+  "教育科学学院",
+  "美术学院",
+  "音乐学院",
+  "网络空间安全学院",
+  "数据科学与工程学院",
+];
+
 const grades = ["大一", "大二", "大三", "大四", "研一", "研二"];
 
 export default function Register() {
@@ -38,8 +59,12 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const totalSteps = 4; // 0=账号, 1=技能, 2=目标, 3=学院
-  const displayNum = user ? step : step; // step 0-3
+  // 自定义技能标签
+  const [customSkills, setCustomSkills] = useState([]);
+  const [customInput, setCustomInput] = useState("");
+  const allSkillOptions = [...skillOptions, ...customSkills];
+
+  const totalSteps = 4;
   const displayTotal = user ? 3 : 4;
 
   const toggleSkill = (s) => {
@@ -47,6 +72,28 @@ export default function Register() {
       setSkills(skills.filter((x) => x !== s));
     } else if (skills.length < 3) {
       setSkills([...skills, s]);
+    }
+  };
+
+  const addCustomSkill = () => {
+    const trimmed = customInput.trim();
+    if (!trimmed) return;
+    if (allSkillOptions.includes(trimmed)) {
+      setCustomInput("");
+      return;
+    }
+    setCustomSkills([...customSkills, trimmed]);
+    // 自动选中
+    if (skills.length < 3) {
+      setSkills([...skills, trimmed]);
+    }
+    setCustomInput("");
+  };
+
+  const handleCustomKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addCustomSkill();
     }
   };
 
@@ -59,7 +106,7 @@ export default function Register() {
   };
 
   const handleNext = async () => {
-    // Step 0: 先创建 Supabase 账号
+    // Step 0: 创建本地账号
     if (!user && step === 0) {
       setError("");
       setSaving(true);
@@ -69,11 +116,9 @@ export default function Register() {
         setStep(step + 1);
       } catch (err) {
         setSaving(false);
-        const msg = err.message;
-        if (msg.includes("already registered") || msg.includes("already exists")) {
+        const msg = err instanceof Error ? err.message : String(err);
+        if (msg.includes("已被注册")) {
           setError("该邮箱已被注册，请直接登录");
-        } else if (msg.includes("password")) {
-          setError("密码至少需要 6 位字符");
         } else {
           setError(msg);
         }
@@ -89,13 +134,14 @@ export default function Register() {
     setError("");
 
     try {
-      // 统一走 api 层保存档案到 Supabase
       await registerUser({ skills, goal, college, grade });
 
       navigate("/match");
     } catch (err) {
-      setError("保存失败，请重试");
-      console.error(err);
+      const msg =
+        err instanceof Error ? err.message : String(err);
+      setError(msg || "保存失败，请重试");
+      console.error("注册保存失败:", err);
     } finally {
       setSaving(false);
     }
@@ -148,7 +194,7 @@ export default function Register() {
             创建你的账号
           </h2>
           <p className="mt-1 text-sm text-[#78716c]">
-            使用学校邮箱注册，找到身边的同学
+            注册后即可开始匹配队友
           </p>
           <div className="mt-6 space-y-4">
             <div>
@@ -160,7 +206,7 @@ export default function Register() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                placeholder="yourname@school.edu.cn"
+                placeholder="yourname@example.com"
                 className="w-full px-4 py-3 rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow"
               />
             </div>
@@ -181,7 +227,7 @@ export default function Register() {
         </div>
       )}
 
-      {/* Step 1: Skills (已登录用户的第一个步骤，新用户的第二个步骤) */}
+      {/* Step 1: Skills */}
       {((user && step === 1) || (!user && step === 1)) && (
         <div>
           <h2 className="font-display text-2xl font-bold text-[#1c1917]">
@@ -190,8 +236,10 @@ export default function Register() {
           <p className="mt-1 text-sm text-[#78716c]">
             已选 {skills.length}/3，点击标签选择
           </p>
+
+          {/* 预设标签 */}
           <div className="mt-6 flex flex-wrap gap-2">
-            {skillOptions.map((s) => {
+            {allSkillOptions.map((s) => {
               const active = skills.includes(s);
               return (
                 <button
@@ -204,9 +252,42 @@ export default function Register() {
                   }`}
                 >
                   {s}
+                  {customSkills.includes(s) && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCustomSkills(customSkills.filter((x) => x !== s));
+                        setSkills(skills.filter((x) => x !== s));
+                      }}
+                      className="ml-1.5 inline-flex items-center text-accent-500 hover:text-red-500"
+                      title="删除自定义标签"
+                    >
+                      <X size={12} weight="bold" />
+                    </button>
+                  )}
                 </button>
               );
             })}
+          </div>
+
+          {/* 自定义标签输入 */}
+          <div className="mt-4 flex items-center gap-2">
+            <input
+              type="text"
+              value={customInput}
+              onChange={(e) => setCustomInput(e.target.value)}
+              onKeyDown={handleCustomKeyDown}
+              placeholder="输入自定义技能，按回车添加"
+              className="flex-1 px-4 py-2.5 text-sm rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow"
+            />
+            <button
+              onClick={addCustomSkill}
+              disabled={!customInput.trim()}
+              className="inline-flex items-center gap-1 px-4 py-2.5 text-sm font-medium text-accent-600 bg-accent-50 rounded-lg border border-accent-200 hover:bg-accent-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            >
+              <Plus size={16} />
+              添加
+            </button>
           </div>
         </div>
       )}
