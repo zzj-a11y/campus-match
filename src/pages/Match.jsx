@@ -15,6 +15,7 @@ export default function Match() {
   const [matchResult, setMatchResult] = useState(null);
   const [showMatchPopup, setShowMatchPopup] = useState(false);
   const [myMatches, setMyMatches] = useState([]);
+  const [slowHint, setSlowHint] = useState(false);
 
   const dragX = useMotionValue(0);
   const rotate = useTransform(dragX, [-200, 200], [-20, 20]);
@@ -28,8 +29,11 @@ export default function Match() {
 
   // 加载用户和候选
   useEffect(() => {
+    let cancelled = false;
+    const slowTimer = setTimeout(() => { if (!cancelled) setSlowHint(true); }, 8000);
     (async () => {
       const u = await getCurrentUser();
+      if (cancelled) return;
       if (!u) {
         navigate("/register", { replace: true });
         return;
@@ -39,10 +43,14 @@ export default function Match() {
         getCandidates(),
         getUserMatches(),
       ]);
+      if (cancelled) return;
+      clearTimeout(slowTimer);
       setCandidates(list);
       setMyMatches(matches);
       setLoading(false);
+      setSlowHint(false);
     })();
+    return () => { cancelled = true; clearTimeout(slowTimer); };
   }, []);
 
   const current = candidates[index];
@@ -62,8 +70,11 @@ export default function Match() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex flex-col items-center justify-center h-64 gap-3">
         <div className="w-6 h-6 border-2 border-accent-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-[#78716c]">
+          {slowHint ? "服务器启动中，请耐心等待..." : "加载中..."}
+        </p>
       </div>
     );
   }

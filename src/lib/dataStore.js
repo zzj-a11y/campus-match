@@ -32,7 +32,7 @@ export async function getCurrentUser() {
     .from("profiles")
     .select("name, college, grade, skills, goal")
     .eq("user_id", session.user.id)
-    .single();
+    .maybeSingle();
 
   setCurrentUserId(session.user.id);
 
@@ -59,9 +59,10 @@ export async function registerUser({ skills, goal, college, grade }) {
     .from("profiles")
     .upsert({ user_id: uid, skills, goal, college, grade }, { onConflict: "user_id" })
     .select("name, college, grade, skills, goal")
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
+  if (!data) throw new Error("保存资料失败，请重试");
 
   return {
     id: uid,
@@ -79,7 +80,7 @@ export async function getUserById(userId) {
     .from("profiles")
     .select("name, college, grade, skills, goal")
     .eq("user_id", userId)
-    .single();
+    .maybeSingle();
 
   if (!profile) return null;
   return {
@@ -214,9 +215,10 @@ export async function swipeRight(userId) {
     .from("matches")
     .insert({ user_a: user.id, user_b: userId, status: "pending" })
     .select("id, user_a, user_b, status")
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
+  if (!newMatch) throw new Error("操作失败，请重试");
 
   return { match: newMatch, targetUser: null, isPending: true };
 }
@@ -232,7 +234,7 @@ export async function getMatchPartner(matchId, currentUserId) {
     .from("matches")
     .select("user_a, user_b")
     .eq("id", matchId)
-    .single();
+    .maybeSingle();
 
   if (!match) return null;
   const partnerId = match.user_a === currentUserId ? match.user_b : match.user_a;
@@ -267,9 +269,10 @@ export async function sendMessage(matchId, text) {
     .from("messages")
     .insert({ match_id: matchId, sender_id: user.id, content: text })
     .select("id, sent_at")
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
+  if (!msg) throw new Error("发送失败，请重试");
 
   return {
     id: msg.id,
@@ -354,7 +357,7 @@ export async function createProject(matchId, targetUserName) {
     .from("matches")
     .select("user_a, user_b")
     .eq("id", matchId)
-    .single();
+    .maybeSingle();
 
   if (!match) throw new Error("匹配不存在");
 
@@ -368,9 +371,10 @@ export async function createProject(matchId, targetUserName) {
       match_id: matchId,
     })
     .select("id")
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
+  if (!project) throw new Error("创建项目失败，请重试");
 
   await supabase.from("project_members").insert([
     { project_id: project.id, user_id: user.id, role: "owner" },
@@ -409,7 +413,7 @@ export async function getProject(projectId) {
     .from("projects")
     .select("id, name, created_by, match_id")
     .eq("id", projectId)
-    .single();
+    .maybeSingle();
 
   if (!project) return null;
 
@@ -457,9 +461,10 @@ export async function updateTask(projectId, taskId, updates) {
     .eq("id", taskId)
     .eq("project_id", projectId)
     .select("id, title, status, assignee, due_date")
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
+  if (!task) throw new Error("更新失败，请重试");
 
   return {
     id: task.id,
@@ -475,7 +480,7 @@ export async function addTask(projectId, title) {
     .from("tasks")
     .insert({ project_id: projectId, title, status: "todo", assignee: "未分配", due_date: "待定" })
     .select("id, title, status, assignee, due_date")
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
 
@@ -539,9 +544,10 @@ export async function addRecruitment({ title, skills, college }) {
       urgent: false,
     })
     .select("id, title, skills, college, author_id, urgent, created_at")
-    .single();
+    .maybeSingle();
 
   if (error) throw error;
+  if (!item) throw new Error("发布失败，请重试");
 
   return {
     id: item.id,
