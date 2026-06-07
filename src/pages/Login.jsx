@@ -39,7 +39,12 @@ export default function Login() {
   };
 
   return (
-    <div className="max-w-[480px] mx-auto px-6 py-16">
+    <div className="max-w-[480px] mx-auto px-6 py-16 relative">
+      {/* 背景装饰 */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{
+        backgroundImage: "radial-gradient(circle, #0d9488 1px, transparent 1px)",
+        backgroundSize: "24px 24px"
+      }} />
       <h1 className="font-display text-2xl font-bold text-[#1c1917]">
         登录校园智搭
       </h1>
@@ -104,11 +109,11 @@ export default function Login() {
       </p>
 
       {/* 种子用户提示 */}
-      <div className="mt-8 p-4 rounded-xl bg-stone-50 border border-[#e7e5e4]">
-        <p className="text-xs text-[#78716c] leading-relaxed">
-          💡 试试种子账号体验匹配：<br />
-          <span className="font-mono text-accent-600">zhang@campus.edu</span> / 123456<br />
-          或注册新账号加入广师大小伙伴
+      <div className="mt-8 p-5 rounded-2xl bg-gradient-to-br from-accent-50 to-warm-50 border border-accent-100">
+        <p className="text-sm text-[#78716c] leading-relaxed">
+          <span className="font-semibold text-accent-700">快速体验</span><br/>
+          用种子账号 <span className="font-mono text-accent-600 bg-white px-2 py-0.5 rounded border border-accent-200">zhang@campus.edu</span><br/>
+          密码 <span className="font-mono text-accent-600">123456</span>
         </p>
       </div>
     </div>

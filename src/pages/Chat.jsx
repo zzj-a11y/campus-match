@@ -104,12 +104,21 @@ export default function Chat() {
           <Link to="/match" className="text-[#78716c] hover:text-[#1c1917] transition-colors">
             <ArrowLeft size={22} />
           </Link>
-          <div className="w-10 h-10 rounded-full bg-accent-100 flex items-center justify-center text-accent-700 font-bold">
+          <div className="w-10 h-10 rounded-full bg-accent-100 flex items-center justify-center text-accent-700 font-bold relative">
             {partner.avatar}
+            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-white" />
           </div>
           <div>
             <div className="font-semibold text-[#1c1917]">{partner.name}</div>
-            <div className="text-xs text-accent-600">在线</div>
+            <div className="flex items-center gap-2 text-xs text-[#78716c]">
+              <span>在线</span>
+              {partner.college && (
+                <>
+                  <span className="text-[#d6d3d1]">|</span>
+                  <span className="bg-accent-100 text-accent-700 px-2 py-0.5 rounded-full text-[11px] font-medium">{partner.college}</span>
+                </>
+              )}
+            </div>
           </div>
         </div>
         <button
@@ -128,29 +137,36 @@ export default function Chat() {
             发送第一条消息，开始你们的合作
           </div>
         )}
-        {messages.map((m) => (
-          <div
-            key={m.id}
-            className={`flex ${m.sender === "me" ? "justify-end" : "justify-start"}`}
-          >
+        {messages.map((m, idx) => {
+          const isMe = m.sender === "me";
+          const otherBubbleClass = !isMe && (idx % 4 === 2)
+            ? "bg-warm-50 text-[#1c1917] rounded-bl-md"
+            : "bg-[#e7e5e4] text-[#1c1917] rounded-bl-md";
+
+          return (
             <div
-              className={`msg-enter max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
-                m.sender === "me"
-                  ? "bg-accent-600 text-white rounded-br-md"
-                  : "bg-[#e7e5e4] text-[#1c1917] rounded-bl-md"
-              }`}
+              key={m.id}
+              className={`flex ${isMe ? "justify-end" : "justify-start"}`}
             >
-              {m.text}
               <div
-                className={`text-[11px] mt-1 ${
-                  m.sender === "me" ? "text-accent-200" : "text-[#a8a29e]"
+                className={`msg-enter max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+                  isMe
+                    ? "bg-accent-600 text-white rounded-br-md"
+                    : otherBubbleClass
                 }`}
               >
-                {m.time}
+                {m.text}
+                <div
+                  className={`text-[11px] mt-1 ${
+                    isMe ? "text-accent-200" : "text-[#a8a29e]"
+                  }`}
+                >
+                  {m.time}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         <div ref={messagesEndRef} />
       </div>
 

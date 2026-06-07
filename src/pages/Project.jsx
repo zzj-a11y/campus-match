@@ -6,27 +6,36 @@ import { getCurrentUser, getProject, updateTask, addTask } from "../lib/dataStor
 
 function TaskCard({ task, onDragStart }) {
   const isDone = task.status === "done";
+  const statusColor = isDone
+    ? "#0d9488"
+    : task.status === "in_progress"
+    ? "#f97316"
+    : "#d6d3d1";
   return (
     <motion.div
       layout
       draggable
       onDragStart={(e) => onDragStart(e, task.id)}
-      className={`kanban-card rounded-xl border p-3.5 mb-3 bg-white transition-all hover:shadow-[0_2px_8px_rgba(28,25,23,0.06)] ${
+      className={`kanban-card rounded-xl border mb-3 bg-white transition-all hover:shadow-[0_2px_8px_rgba(28,25,23,0.06)] flex ${
         isDone ? "border-[#e7e5e4] opacity-70" : "border-[#e7e5e4]"
       }`}
     >
-      <div className={`text-sm font-medium ${isDone ? "text-[#a8a29e] line-through" : "text-[#1c1917]"}`}>
-        {task.title}
-      </div>
-      <div className="mt-2 flex items-center gap-3 text-xs text-[#78716c]">
-        <span className="inline-flex items-center gap-1">
-          <User size={12} />
-          {task.assignee}
-        </span>
-        <span className="inline-flex items-center gap-1">
-          <Calendar size={12} />
-          {task.due}
-        </span>
+      {/* 状态色带 */}
+      <div className="w-[3px] flex-shrink-0 rounded-l-xl" style={{ backgroundColor: statusColor }} />
+      <div className="p-3.5 flex-1">
+        <div className={`text-sm font-medium ${isDone ? "text-[#a8a29e] line-through" : "text-[#1c1917]"}`}>
+          {task.title}
+        </div>
+        <div className="mt-2 flex items-center gap-3 text-xs text-[#78716c]">
+          <span className="inline-flex items-center gap-1">
+            <User size={12} />
+            {task.assignee}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Calendar size={12} />
+            {task.due}
+          </span>
+        </div>
       </div>
     </motion.div>
   );

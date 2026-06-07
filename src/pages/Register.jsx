@@ -161,7 +161,23 @@ export default function Register() {
   const currentDisplayStep = user ? step : step + 1;
 
   return (
-    <div className="max-w-[680px] mx-auto px-6 py-12">
+    <div className="max-w-[680px] mx-auto px-6 py-12 relative">
+      {/* 背景装饰 */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.03]" style={{
+        backgroundImage: "radial-gradient(circle, #0d9488 1px, transparent 1px)",
+        backgroundSize: "24px 24px"
+      }} />
+
+      {/* 步骤名 */}
+      <div className="text-center mb-2">
+        <span className="text-sm font-medium text-accent-600">
+          {!user && step === 0 && "创建账号"}
+          {step === 1 && "选择技能"}
+          {step === 2 && "确定目标"}
+          {step === 3 && "学院与年级"}
+        </span>
+      </div>
+
       {/* Progress */}
       <div className="flex items-center gap-2 mb-10">
         {progressSteps.map((n, i) => (

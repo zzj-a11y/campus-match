@@ -123,7 +123,8 @@ export default function Square() {
       </div>
 
       {/* Filter bar */}
-      <div className="flex flex-wrap items-center gap-3 mb-6">
+      <div className="sticky top-16 z-30 bg-[#fafaf9]/90 backdrop-blur-sm -mx-6 px-6 py-3 border-b border-[#e7e5e4] mb-4">
+        <div className="flex flex-wrap items-center gap-3">
         <div className="relative">
           <select
             value={collegeFilter}
@@ -158,6 +159,7 @@ export default function Square() {
             className="w-full pl-10 pr-4 py-2 text-sm rounded-full border border-[#e7e5e4] bg-white text-[#1c1917] placeholder-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-300"
           />
         </div>
+        </div>
       </div>
 
       {/* Post grid */}
@@ -181,7 +183,7 @@ export default function Square() {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredPosts.map((p) => (
             <div
               key={p.id}
@@ -191,12 +193,19 @@ export default function Square() {
                 <h3 className="font-semibold text-[#1c1917] leading-snug group-hover:text-accent-700 transition-colors">
                   {p.title}
                 </h3>
-                {p.urgent && (
-                  <span className="flex-shrink-0 inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-orange-600 bg-orange-50 rounded-full">
-                    <Fire size={12} weight="fill" />
-                    急
-                  </span>
-                )}
+                <div className="flex items-center gap-1.5 flex-shrink-0">
+                  {p.time === "刚刚" && (
+                    <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-accent-600 bg-accent-100 rounded-full">
+                      新
+                    </span>
+                  )}
+                  {p.urgent && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-warm-600 bg-warm-100 rounded-full">
+                      <Fire size={12} weight="fill" />
+                      急
+                    </span>
+                  )}
+                </div>
               </div>
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {p.skills.map((s) => (

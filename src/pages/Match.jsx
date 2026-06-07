@@ -155,20 +155,38 @@ export default function Match() {
   }
 
   return (
-    <div className="max-w-[480px] mx-auto px-6 py-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <Link to="/" className="text-[#78716c] hover:text-[#1c1917] transition-colors">
-          <ArrowLeft size={22} />
-        </Link>
-        <h1 className="font-display text-lg font-bold text-[#1c1917]">发现队友</h1>
-        <button className="text-[#78716c] hover:text-[#1c1917] transition-colors">
-          <Faders size={22} />
-        </button>
-      </div>
+    <div className="max-w-[960px] mx-auto px-6 py-8">
+      <div className="flex gap-6 justify-center">
+        {/* 匹配小贴士侧栏 */}
+        <div className="hidden lg:block w-[200px] flex-shrink-0">
+          <div className="sticky top-24 rounded-2xl border border-[#e7e5e4] bg-white p-5 shadow-[0_2px_8px_rgba(28,25,23,0.04)]">
+            <div className="text-xs font-semibold text-[#78716c] uppercase tracking-wider mb-3">匹配小贴士</div>
+            <p className="text-sm text-[#1c1917] leading-relaxed">
+              同学院同学的匹配度更高哦，不妨先多看看本院的小伙伴
+            </p>
+            <div className="mt-4 pt-4 border-t border-[#e7e5e4]">
+              <div className="text-xs text-[#78716c]">
+                已匹配 <span className="font-bold text-accent-600">{myMatches.length}</span> 位队友
+              </div>
+            </div>
+          </div>
+        </div>
 
-      {/* Card area */}
-      <div className="relative w-full" style={{ height: 420 }}>
+        {/* 卡片主体 */}
+        <div className="max-w-[480px] flex-1">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <Link to="/" className="text-[#78716c] hover:text-[#1c1917] transition-colors">
+              <ArrowLeft size={22} />
+            </Link>
+            <h1 className="font-display text-lg font-bold text-[#1c1917]">发现队友</h1>
+            <button className="text-[#78716c] hover:text-[#1c1917] transition-colors">
+              <Faders size={22} />
+            </button>
+          </div>
+
+          {/* Card area */}
+          <div className="relative w-full" style={{ height: 420 }}>
         {candidates.slice(index + 1, index + 3).map((c, i) => (
           <div
             key={c.id}
@@ -344,6 +362,8 @@ export default function Match() {
           </motion.div>
         )}
       </AnimatePresence>
+        </div>{/* close card column */}
+      </div>{/* close flex */}
     </div>
   );
 }
