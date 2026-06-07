@@ -54,10 +54,10 @@ export async function registerUser({ skills, goal, college, grade }) {
   const uid = session?.user?.id || currentUserId();
   if (!uid) throw new Error("未登录，请先注册账号");
 
+  // upsert：profile 存在就更新，不存在就创建（防止 DB trigger 未触发）
   const { data, error } = await supabase
     .from("profiles")
-    .update({ skills, goal, college, grade })
-    .eq("user_id", uid)
+    .upsert({ user_id: uid, skills, goal, college, grade }, { onConflict: "user_id" })
     .select("name, college, grade, skills, goal")
     .single();
 

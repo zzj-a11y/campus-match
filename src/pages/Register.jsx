@@ -148,7 +148,15 @@ export default function Register() {
 
       navigate("/match");
     } catch (err) {
-      const msg = err?.message || (err instanceof Error ? err.message : "") || "保存失败，请重试";
+      let msg = err?.message || (err instanceof Error ? err.message : "") || "保存失败，请重试";
+      // Supabase 原始错误转中文
+      if (typeof msg === "string") {
+        if (msg.includes("coerce") || msg.includes("single JSON")) {
+          msg = "保存资料失败，请刷新页面重试";
+        } else if (msg.includes("row-level security") || msg.includes("RLS")) {
+          msg = "权限不足，请重新登录后再试";
+        }
+      }
       setError(typeof msg === "string" ? msg : "保存失败，请重试");
       console.error("注册保存失败:", err);
     } finally {
