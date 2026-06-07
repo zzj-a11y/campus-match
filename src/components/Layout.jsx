@@ -1,11 +1,13 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Nav from "./Nav";
 
 export default function Layout() {
+  const location = useLocation();
+
   return (
     <div className="min-h-[100dvh] flex flex-col bg-[#fafaf9]">
       <Nav />
-      <main className="flex-1">
+      <main className="flex-1 page-enter" key={location.pathname}>
         <Outlet />
       </main>
       <footer className="border-t border-[#e7e5e4] py-6 px-6">

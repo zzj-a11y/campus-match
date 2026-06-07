@@ -1,30 +1,96 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { MagnifyingGlass, Plus, CaretDown, Fire } from "@phosphor-icons/react";
-import { getRecruitments } from "../lib/mockStore";
+import { MagnifyingGlass, Plus, CaretDown, Fire, X } from "@phosphor-icons/react";
+import { getRecruitments, addRecruitment } from "../lib/dataStore";
+import { useAuth } from "../context/AuthContext";
 
-const colleges = ["全部学院", "计算机学院", "经管学院", "设计学院", "人文学院", "理工学院"];
-const skillFilters = ["全部技能", "Python", "React", "PS", "PPT", "数据分析", "写作"];
+const colleges = [
+  "全部学院",
+  "计算机科学学院",
+  "机电学院",
+  "自动化学院",
+  "汽车与交通工程学院",
+  "电子与信息学院",
+  "光电工程学院",
+  "数学与系统科学学院",
+  "管理学院",
+  "财经学院",
+  "外国语学院",
+  "文学与传媒学院",
+  "法学与知识产权学院",
+  "教育科学学院",
+  "美术学院",
+  "音乐学院",
+  "网络空间安全学院",
+  "数据科学与工程学院",
+];
+const skillFilters = [
+  "全部技能",
+  "Python", "Java", "C++", "JavaScript", "React", "Vue",
+  "Spring Boot", "MySQL", "机器学习", "数据分析",
+  "PS", "AI", "Figma", "UI设计", "动画", "剪辑", "摄影",
+  "PPT", "Excel", "写作", "文案", "演讲", "商业计划书",
+  "CAD", "机器人工程", "嵌入式开发", "单片机", "网络安全",
+  "英语", "日语", "翻译", "金融分析", "法律检索",
+];
 
 export default function Square() {
+  const { user } = useAuth();
   const [collegeFilter, setCollegeFilter] = useState("全部学院");
   const [skillFilter, setSkillFilter] = useState("全部技能");
   const [search, setSearch] = useState("");
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // 发布招募表单
+  const [showCreate, setShowCreate] = useState(false);
+  const [createTitle, setCreateTitle] = useState("");
+  const [createSkills, setCreateSkills] = useState([]);
+  const [createSkillInput, setCreateSkillInput] = useState("");
+  const [createCollege, setCreateCollege] = useState("");
+  const [createSubmitting, setCreateSubmitting] = useState(false);
+
+  const loadPosts = async () => {
+    setLoading(true);
+    const data = await getRecruitments({
+      college: collegeFilter,
+      skill: skillFilter,
+    });
+    setPosts(data);
+    setLoading(false);
+  };
+
   // 加载招募帖
   useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const data = await getRecruitments({
-        college: collegeFilter,
-        skill: skillFilter,
-      });
-      setPosts(data);
-      setLoading(false);
-    })();
+    loadPosts();
   }, [collegeFilter, skillFilter]);
+
+  const handlePublish = async () => {
+    if (!createTitle.trim() || createSkills.length === 0) return;
+    setCreateSubmitting(true);
+    await addRecruitment({
+      title: createTitle.trim(),
+      skills: createSkills,
+      college: createCollege || (user?.college) || "计算机科学学院",
+    });
+    setCreateSubmitting(false);
+    setShowCreate(false);
+    setCreateTitle("");
+    setCreateSkills([]);
+    setCreateSkillInput("");
+    setCreateCollege("");
+    loadPosts();
+  };
+
+  const addCreateSkill = () => {
+    const s = createSkillInput.trim();
+    if (!s || createSkills.includes(s)) {
+      setCreateSkillInput("");
+      return;
+    }
+    setCreateSkills([...createSkills, s]);
+    setCreateSkillInput("");
+  };
 
   const filteredPosts = posts.filter((p) => {
     if (!search.trim()) return true;
@@ -41,13 +107,19 @@ export default function Square() {
         <h1 className="font-display text-2xl font-bold text-[#1c1917]">
           招募广场
         </h1>
-        <Link
-          to="/register"
+        <button
+          onClick={() => {
+            if (!user) {
+              window.location.href = "/#/login";
+              return;
+            }
+            setShowCreate(true);
+          }}
           className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-accent-600 rounded-full no-underline hover:bg-accent-700 active:scale-[0.98] transition-all"
         >
           <Plus size={16} weight="bold" />
           发布需求
-        </Link>
+        </button>
       </div>
 
       {/* Filter bar */}
@@ -142,6 +214,104 @@ export default function Square() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* 发布招募弹窗 */}
+      {showCreate && (
+        <div
+          className="fixed inset-0 z-[100] bg-black/50 flex items-center justify-center p-6"
+          onClick={() => setShowCreate(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-[20px] p-6 max-w-[480px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-display text-xl font-bold text-[#1c1917]">发布招募</h2>
+              <button
+                onClick={() => setShowCreate(false)}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[#78716c] hover:bg-[#e7e5e4] transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-[#1c1917] mb-1.5">招募标题</label>
+                <input
+                  type="text"
+                  value={createTitle}
+                  onChange={(e) => setCreateTitle(e.target.value)}
+                  placeholder="例如：找 Python 队友打数学建模比赛"
+                  className="w-full px-4 py-2.5 text-sm rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#1c1917] mb-1.5">
+                  所需技能 <span className="text-[#78716c] font-normal">（已选 {createSkills.length} 个）</span>
+                </label>
+                <div className="flex items-center gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={createSkillInput}
+                    onChange={(e) => setCreateSkillInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addCreateSkill();
+                      }
+                    }}
+                    placeholder="输入技能名，回车添加"
+                    className="flex-1 px-4 py-2 text-sm rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400"
+                  />
+                  <button
+                    onClick={addCreateSkill}
+                    disabled={!createSkillInput.trim()}
+                    className="px-4 py-2 text-sm font-medium text-accent-600 bg-accent-50 rounded-lg border border-accent-200 hover:bg-accent-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+                {createSkills.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {createSkills.map((s) => (
+                      <span key={s} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium bg-accent-100 text-accent-700 rounded-lg">
+                        {s}
+                        <button onClick={() => setCreateSkills(createSkills.filter((x) => x !== s))}>
+                          <X size={12} weight="bold" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-[#1c1917] mb-1.5">所在学院</label>
+                <select
+                  value={createCollege}
+                  onChange={(e) => setCreateCollege(e.target.value)}
+                  className="w-full px-4 py-2.5 text-sm rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] focus:outline-none focus:ring-2 focus:ring-accent-400"
+                >
+                  <option value="">{user?.college || "选择学院"}</option>
+                  {colleges.filter(c => c !== "全部学院").map((c) => (
+                    <option key={c} value={c}>{c}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <button
+              onClick={handlePublish}
+              disabled={!createTitle.trim() || createSkills.length === 0 || createSubmitting}
+              className="mt-6 w-full py-3 text-sm font-semibold text-white bg-accent-600 rounded-full hover:bg-accent-700 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
+            >
+              {createSubmitting ? "发布中..." : "发布招募"}
+            </button>
+          </div>
         </div>
       )}
     </div>

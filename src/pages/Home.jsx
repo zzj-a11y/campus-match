@@ -13,14 +13,14 @@ const features = [
     icon: ChatCenteredDots,
     title: "即时通讯",
     desc: "匹配成功自动建对话，无需加好友",
-    to: "/chat/1",
+    to: "/match",
     size: "sm",
   },
   {
     icon: Kanban,
     title: "任务看板",
     desc: "组队自动建项目，DDL 追踪不摆烂",
-    to: "/project/1",
+    to: "/match",
     size: "sm",
   },
 ];

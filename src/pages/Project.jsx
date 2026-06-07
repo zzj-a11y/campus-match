@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Plus, Calendar, User, Star } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "motion/react";
-import { getCurrentUser, getProject, updateTask, addTask } from "../lib/mockStore";
+import { getCurrentUser, getProject, updateTask, addTask } from "../lib/dataStore";
 
 function TaskCard({ task, onDragStart }) {
   const isDone = task.status === "done";
@@ -112,7 +112,7 @@ export default function Project() {
       {/* Project header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
-          <Link to="/chat/1" className="text-[#78716c] hover:text-[#1c1917] transition-colors">
+          <Link to={project.match_id ? `/chat/${project.match_id}` : "/match"} className="text-[#78716c] hover:text-[#1c1917] transition-colors">
             <ArrowLeft size={22} />
           </Link>
           <div>

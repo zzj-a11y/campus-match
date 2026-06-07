@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, useMotionValue, useTransform, AnimatePresence } from "motion/react";
-import { ArrowLeft, X, Heart, Faders, Sparkle } from "@phosphor-icons/react";
-import { getCurrentUser, getCandidates, swipeRight, swipeLeft } from "../lib/mockStore";
+import { ArrowLeft, X, Heart, Faders, Sparkle, ChatCenteredDots } from "@phosphor-icons/react";
+import { getCurrentUser, getCandidates, swipeRight, swipeLeft, getUserMatches } from "../lib/dataStore";
 
 export default function Match() {
   const navigate = useNavigate();
@@ -14,6 +14,7 @@ export default function Match() {
   const [exitDir, setExitDir] = useState(null);
   const [matchResult, setMatchResult] = useState(null);
   const [showMatchPopup, setShowMatchPopup] = useState(false);
+  const [myMatches, setMyMatches] = useState([]);
 
   const dragX = useMotionValue(0);
   const rotate = useTransform(dragX, [-200, 200], [-20, 20]);
@@ -34,8 +35,12 @@ export default function Match() {
         return;
       }
       setUser(u);
-      const list = await getCandidates();
+      const [list, matches] = await Promise.all([
+        getCandidates(),
+        getUserMatches(),
+      ]);
       setCandidates(list);
+      setMyMatches(matches);
       setLoading(false);
     })();
   }, []);
@@ -113,6 +118,32 @@ export default function Match() {
         <p className="mt-2 text-[#78716c]">
           去招募广场看看更多队友，或稍后再来发现新人
         </p>
+
+        {/* 已有对话 */}
+        {myMatches.length > 0 && (
+          <div className="mt-8 text-left">
+            <h3 className="text-sm font-semibold text-[#1c1917] mb-3">我的对话</h3>
+            <div className="space-y-2">
+              {myMatches.map((m) => (
+                <Link
+                  key={m.matchId}
+                  to={`/chat/${m.matchId}`}
+                  className="flex items-center gap-3 p-3 rounded-xl border border-[#e7e5e4] bg-white hover:shadow-[0_2px_8px_rgba(28,25,23,0.06)] no-underline transition-all"
+                >
+                  <div className="w-10 h-10 rounded-full bg-accent-100 flex items-center justify-center text-accent-700 font-bold flex-shrink-0">
+                    {m.partner.avatar}
+                  </div>
+                  <div className="text-left min-w-0">
+                    <div className="text-sm font-medium text-[#1c1917]">{m.partner.name}</div>
+                    <div className="text-xs text-[#78716c] truncate">{m.lastMessage || "开始对话"}</div>
+                  </div>
+                  <ChatCenteredDots size={18} className="text-accent-400 ml-auto flex-shrink-0" />
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
         <Link
           to="/square"
           className="mt-6 inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-accent-600 rounded-full no-underline hover:bg-accent-700 active:scale-[0.98] transition-all"

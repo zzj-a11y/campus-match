@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { signUpLocal, signInLocal, signOutLocal, getCurrentUser } from "../lib/mockStore";
+import { supabase } from "../lib/supabase";
 
 const AuthContext = createContext(null);
 
@@ -7,31 +7,77 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // 启动时从 Supabase session 恢复
   useEffect(() => {
-    // 启动时检查是否已有登录用户
-    getCurrentUser().then((u) => {
-      setUser(u);
-      setLoading(false);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        loadProfile(session.user);
+      } else {
+        setLoading(false);
+      }
     });
+
+    // 监听 auth 状态变化
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        loadProfile(session.user);
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  // 邮箱注册
-  const signUp = useCallback(async (email, password) => {
-    const data = await signUpLocal(email, password);
-    setUser(data);
-    return data;
+  async function loadProfile(authUser) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("name, college, grade, skills, goal")
+      .eq("user_id", authUser.id)
+      .single();
+
+    setUser({
+      id: authUser.id,
+      email: authUser.email,
+      name: profile?.name || authUser.email?.split("@")[0] || "",
+      avatar: (profile?.name || authUser.email || "?")[0],
+      college: profile?.college || "",
+      grade: profile?.grade || "",
+      skills: profile?.skills || [],
+      goal: profile?.goal || "",
+    });
+    setLoading(false);
+  }
+
+  // 注册：Supabase Auth signUp + profiles INSERT
+  const signUp = useCallback(async (email, password, name) => {
+    const { data, error } = await supabase.auth.signUp({ email, password });
+    if (error) throw error;
+    if (!data.user) throw new Error("注册失败，请重试");
+
+    // 创建 profiles 行
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .insert({ user_id: data.user.id, name });
+
+    if (profileError) throw profileError;
+
+    await loadProfile(data.user);
+    return { id: data.user.id, email, name, skills: [], goal: "", college: "", grade: "" };
   }, []);
 
-  // 邮箱登录
+  // 登录
   const signIn = useCallback(async (email, password) => {
-    const data = await signInLocal(email, password);
-    setUser(data);
-    return data;
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw error;
+
+    await loadProfile(data.user);
+    return true;
   }, []);
 
   // 登出
   const signOut = useCallback(async () => {
-    signOutLocal();
+    await supabase.auth.signOut();
     setUser(null);
   }, []);
 
@@ -42,8 +88,6 @@ export function AuthProvider({ children }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth 必须在 AuthProvider 内部使用");
-  }
+  if (!context) throw new Error("useAuth 必须在 AuthProvider 内部使用");
   return context;
 }

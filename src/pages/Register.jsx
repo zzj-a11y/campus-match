@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Plus, X } from "@phosphor-icons/react";
 import { useAuth } from "../context/AuthContext";
-import { registerUser } from "../lib/mockStore";
+import { registerUser } from "../lib/dataStore";
 
 const skillOptions = [
   "Python", "Java", "C++", "JavaScript", "React", "Vue",
@@ -55,7 +55,8 @@ export default function Register() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  // 仅新用户：邮箱 + 密码
+  // 仅新用户：邮箱 + 密码 + 姓名
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -98,7 +99,7 @@ export default function Register() {
   };
 
   const canNext = () => {
-    if (!user && step === 0) return email.includes("@") && password.length >= 6;
+    if (!user && step === 0) return name.trim().length > 0 && email.includes("@") && password.length >= 6;
     if ((user && step === 1) || (!user && step === 1)) return skills.length > 0;
     if ((user && step === 2) || (!user && step === 2)) return goal !== null;
     if ((user && step === 3) || (!user && step === 3)) return college && grade;
@@ -111,7 +112,7 @@ export default function Register() {
       setError("");
       setSaving(true);
       try {
-        await signUp(email, password);
+        await signUp(email, password, name.trim());
         setSaving(false);
         setStep(step + 1);
       } catch (err) {
@@ -197,6 +198,19 @@ export default function Register() {
             注册后即可开始匹配队友
           </p>
           <div className="mt-6 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-[#1c1917] mb-1.5">
+                你的姓名
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                placeholder="怎么称呼你？"
+                className="w-full px-4 py-3 rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow"
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-[#1c1917] mb-1.5">
                 邮箱

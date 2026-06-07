@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, PaperPlaneTilt, Users } from "@phosphor-icons/react";
 import {
@@ -7,17 +7,20 @@ import {
   sendMessage,
   createProject,
   subscribeMessages,
-} from "../lib/mockStore";
+  getMatchPartner,
+} from "../lib/dataStore";
 
 export default function Chat() {
   const { id: matchId } = useParams();
   const navigate = useNavigate();
   const scrollRef = useRef(null);
+  const messagesEndRef = useRef(null);
 
   const [user, setUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
+  const [partner, setPartner] = useState({ name: "队友", avatar: "队" });
 
   // 加载用户和消息
   useEffect(() => {
@@ -29,11 +32,13 @@ export default function Chat() {
       }
       setUser(u);
 
+      // 加载队友信息
+      const p = await getMatchPartner(matchId, u.id);
+      if (p) setPartner(p);
+
+      // getConversation 返回的 sender 已经是 "me"/"other"，直接使用
       const msgs = await getConversation(matchId);
-      setMessages(msgs.map((m) => ({
-        ...m,
-        sender: m.sender === u.id ? "me" : "other",
-      })));
+      setMessages(msgs);
       setLoading(false);
     })();
   }, [matchId]);
@@ -52,12 +57,21 @@ export default function Chat() {
   }, [matchId, user]);
 
   // 自动滚动到底部
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
 
   const handleSend = async () => {
     if (!input.trim()) return;
-    await sendMessage(matchId, input.trim());
+    const myMsg = await sendMessage(matchId, input.trim());
+    // 立即显示自己发送的消息
+    setMessages((prev) => [...prev, myMsg]);
     setInput("");
-    // Realtime subscription will handle the incoming message display
+    // 对方的自动回复由 Realtime subscription 推送
   };
 
   const handleKeyDown = (e) => {
@@ -68,7 +82,7 @@ export default function Chat() {
   };
 
   const handleCreateProject = async () => {
-    const project = await createProject(matchId, "队友");
+    const project = await createProject(matchId, partner.name);
     navigate(`/project/${project.id}`);
   };
 
@@ -91,10 +105,10 @@ export default function Chat() {
             <ArrowLeft size={22} />
           </Link>
           <div className="w-10 h-10 rounded-full bg-accent-100 flex items-center justify-center text-accent-700 font-bold">
-            队
+            {partner.avatar}
           </div>
           <div>
-            <div className="font-semibold text-[#1c1917]">队友</div>
+            <div className="font-semibold text-[#1c1917]">{partner.name}</div>
             <div className="text-xs text-accent-600">在线</div>
           </div>
         </div>
@@ -120,7 +134,7 @@ export default function Chat() {
             className={`flex ${m.sender === "me" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
+              className={`msg-enter max-w-[75%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed ${
                 m.sender === "me"
                   ? "bg-accent-600 text-white rounded-br-md"
                   : "bg-[#e7e5e4] text-[#1c1917] rounded-bl-md"
@@ -137,6 +151,7 @@ export default function Chat() {
             </div>
           </div>
         ))}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
