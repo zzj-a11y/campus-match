@@ -49,8 +49,10 @@ export async function getCurrentUser() {
 }
 
 export async function registerUser({ skills, goal, college, grade }) {
-  const uid = currentUserId();
-  if (!uid) throw new Error("未登录");
+  // 优先用 Supabase session（最可靠），fallback 到 localStorage
+  const { data: { session } } = await supabase.auth.getSession();
+  const uid = session?.user?.id || currentUserId();
+  if (!uid) throw new Error("未登录，请先注册账号");
 
   const { data, error } = await supabase
     .from("profiles")

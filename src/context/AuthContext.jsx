@@ -36,7 +36,7 @@ export function AuthProvider({ children }) {
       .eq("user_id", authUser.id)
       .single();
 
-    setUser({
+    const userData = {
       id: authUser.id,
       email: authUser.email,
       name: profile?.name || authUser.email?.split("@")[0] || "",
@@ -45,8 +45,11 @@ export function AuthProvider({ children }) {
       grade: profile?.grade || "",
       skills: profile?.skills || [],
       goal: profile?.goal || "",
-    });
+    };
+    setUser(userData);
+    localStorage.setItem("campus_current_user", authUser.id);
     setLoading(false);
+    return userData;
   }
 
   // 注册：Supabase Auth signUp — profiles 由 DB 触发器自动创建
@@ -60,9 +63,7 @@ export function AuthProvider({ children }) {
     if (!data.user) throw new Error("注册失败，请重试");
 
     // profiles 已由 handle_new_user() 触发器自动创建，直接加载
-
-    await loadProfile(data.user);
-    return { id: data.user.id, email, name, skills: [], goal: "", college: "", grade: "" };
+    return await loadProfile(data.user);
   }, []);
 
   // 登录
@@ -70,8 +71,7 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
 
-    await loadProfile(data.user);
-    return true;
+    return await loadProfile(data.user);
   }, []);
 
   // 登出
