@@ -172,12 +172,29 @@ export default function Match() {
         {candidates.slice(index + 1, index + 3).map((c, i) => (
           <div
             key={c.id}
-            className="absolute inset-0 rounded-[20px] border border-[#e7e5e4] bg-white"
+            className="absolute inset-0 rounded-[20px] border border-[#e7e5e4] bg-white p-6 flex flex-col"
             style={{
               transform: `scale(${0.95 - i * 0.03}) translateY(${(i + 1) * 6}px)`,
               zIndex: 1 - i,
             }}
-          />
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-14 h-14 rounded-full bg-accent-100 flex items-center justify-center text-accent-700 font-bold text-xl">
+                {c.avatar}
+              </div>
+              <div>
+                <div className="font-semibold text-lg text-[#1c1917]">{c.name}</div>
+                <div className="text-sm text-[#78716c]">{c.college} · {c.grade}</div>
+              </div>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2 opacity-60">
+              {c.skills.map((s) => (
+                <span key={s} className="px-3 py-1.5 text-sm font-medium bg-accent-100 text-accent-700 rounded-lg">
+                  {s}
+                </span>
+              ))}
+            </div>
+          </div>
         ))}
 
         <AnimatePresence>
