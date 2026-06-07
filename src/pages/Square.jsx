@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { MagnifyingGlass, Plus, CaretDown, Fire, X } from "@phosphor-icons/react";
-import { getRecruitments, addRecruitment } from "../lib/dataStore";
+import { getRecruitments, addRecruitment, subscribeRecruitments } from "../lib/dataStore";
 import { useAuth } from "../context/AuthContext";
 
 const colleges = [
@@ -64,6 +64,14 @@ export default function Square() {
   useEffect(() => {
     loadPosts();
   }, [collegeFilter, skillFilter]);
+
+  // Realtime 订阅：新帖自动刷新
+  useEffect(() => {
+    const channel = subscribeRecruitments((newPost) => {
+      setPosts((prev) => [newPost, ...prev]);
+    });
+    return () => channel.unsubscribe();
+  }, []);
 
   const handlePublish = async () => {
     if (!createTitle.trim() || createSkills.length === 0) return;

@@ -49,18 +49,17 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }
 
-  // 注册：Supabase Auth signUp + profiles INSERT
+  // 注册：Supabase Auth signUp — profiles 由 DB 触发器自动创建
   const signUp = useCallback(async (email, password, name) => {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { name } }
+    });
     if (error) throw error;
     if (!data.user) throw new Error("注册失败，请重试");
 
-    // 创建 profiles 行
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .insert({ user_id: data.user.id, name });
-
-    if (profileError) throw profileError;
+    // profiles 已由 handle_new_user() 触发器自动创建，直接加载
 
     await loadProfile(data.user);
     return { id: data.user.id, email, name, skills: [], goal: "", college: "", grade: "" };

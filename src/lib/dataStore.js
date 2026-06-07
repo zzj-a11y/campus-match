@@ -551,3 +551,30 @@ export async function addRecruitment({ title, skills, college }) {
     urgent: false,
   };
 }
+
+// ---- Realtime 订阅：招募广场 ----
+
+export function subscribeRecruitments(onNewPost) {
+  const channel = supabase
+    .channel("recruitments:public")
+    .on(
+      "postgres_changes",
+      { event: "INSERT", schema: "public", table: "recruitments" },
+      (payload) => {
+        onNewPost({
+          id: payload.new.id,
+          title: payload.new.title,
+          skills: payload.new.skills || [],
+          college: payload.new.college || "",
+          authorId: payload.new.author_id,
+          time: "刚刚",
+          urgent: payload.new.urgent || false,
+        });
+      }
+    )
+    .subscribe();
+
+  return {
+    unsubscribe: () => supabase.removeChannel(channel),
+  };
+}
