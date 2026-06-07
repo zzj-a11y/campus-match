@@ -41,10 +41,23 @@ export default function Home() {
   return (
     <>
       {/* ---- Hero (≤ 25vh) ---- */}
-      <section className="max-w-[1280px] mx-auto px-6 pt-20 pb-12">
+      <section className="max-w-[1280px] mx-auto px-6 pt-16 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-12 items-center">
           {/* Left: copy */}
           <div>
+            {/* 小插画 */}
+            <div className="mb-5">
+              <svg width="56" height="40" viewBox="0 0 56 40" fill="none" className="opacity-80">
+                <rect x="2" y="10" width="16" height="22" rx="3" fill="#ccfbf1" stroke="#0d9488" strokeWidth="1.2"/>
+                <rect x="6" y="14" width="8" height="2" rx="1" fill="#0d9488" opacity="0.5"/>
+                <rect x="6" y="18" width="8" height="2" rx="1" fill="#0d9488" opacity="0.3"/>
+                <rect x="6" y="22" width="5" height="2" rx="1" fill="#0d9488" opacity="0.2"/>
+                <circle cx="36" cy="18" r="10" fill="#ffedd5" stroke="#f97316" strokeWidth="1"/>
+                <circle cx="34" cy="16" r="2" fill="#f97316"/>
+                <circle cx="39" cy="16" r="2" fill="#f97316"/>
+                <path d="M33 23 Q36 27 40 23" stroke="#f97316" strokeWidth="1.2" fill="none" strokeLinecap="round"/>
+              </svg>
+            </div>
             <h1 className="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#1c1917] leading-[1.08] tracking-tight">
               不止是搭子，
               <br />
@@ -113,38 +126,39 @@ export default function Home() {
       </section>
 
       {/* ---- Feature Bento ---- */}
-      <section className="max-w-[1280px] mx-auto px-6 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr] gap-4">
-          {features.map((f) => {
-            const Icon = f.icon;
-            const isLarge = f.size === "lg";
-            return (
-              <Link
-                key={f.title}
-                to={f.to}
-                className={`group block rounded-2xl border border-[#e7e5e4] bg-white p-6 no-underline transition-all hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] hover:-translate-y-0.5 ${
-                  isLarge ? "md:row-span-2 flex flex-col justify-between" : ""
-                }`}
-              >
-                <div>
-                  <div className="w-10 h-10 rounded-xl bg-accent-100 flex items-center justify-center text-accent-600">
-                    <Icon size={22} weight="duotone" />
-                  </div>
-                  <h3 className="mt-4 font-display text-lg font-bold text-[#1c1917]">
-                    {f.title}
-                  </h3>
-                  <p className="mt-2 text-sm text-[#78716c] leading-relaxed">
-                    {f.desc}
-                  </p>
-                </div>
-                {isLarge && (
-                  <div className="mt-6 flex items-center gap-1 text-sm font-medium text-accent-600 group-hover:gap-2 transition-all">
-                    立即体验 <ArrowRight size={14} weight="bold" />
-                  </div>
-                )}
-              </Link>
-            );
-          })}
+      <section className="max-w-[1280px] mx-auto px-6 py-16 section-divider">
+        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr] gap-4">
+          {/* 大卡片：智能匹配 */}
+          <Link to="/register" className="card-hover group block rounded-2xl border border-accent-200 bg-gradient-to-br from-accent-50 to-white p-8 no-underline md:row-span-2 flex flex-col justify-between">
+            <div>
+              <div className="w-12 h-12 rounded-xl bg-accent-100 flex items-center justify-center text-accent-600">
+                <Users size={26} weight="duotone" />
+              </div>
+              <h3 className="mt-5 font-display text-2xl font-bold text-[#1c1917]">智能匹配</h3>
+              <p className="mt-2 text-base text-[#78716c] leading-relaxed">填标签 30 秒，算法推荐最合适的队友。技能交集 + 同学院 + 同目标，三重加权精准匹配</p>
+            </div>
+            <div className="mt-6 inline-flex items-center gap-2 text-sm font-semibold text-white bg-accent-600 rounded-full px-5 py-2.5 group-hover:gap-3 transition-all w-fit">
+              立即体验 <ArrowRight size={14} weight="bold" />
+            </div>
+          </Link>
+
+          {/* 小卡片 1：即时通讯 */}
+          <Link to="/match" className="card-hover group block rounded-2xl border border-[#e7e5e4] bg-white p-6 no-underline">
+            <div className="w-10 h-10 rounded-xl bg-warm-100 flex items-center justify-center text-warm-500">
+              <ChatCenteredDots size={22} weight="duotone" />
+            </div>
+            <h3 className="mt-4 font-display text-lg font-bold text-[#1c1917]">即时通讯</h3>
+            <p className="mt-2 text-sm text-[#78716c] leading-relaxed">匹配成功自动建对话，无需加好友，消息实时推送</p>
+          </Link>
+
+          {/* 小卡片 2：任务看板 */}
+          <Link to="/match" className="card-hover group block rounded-2xl border border-[#e7e5e4] bg-white p-6 no-underline">
+            <div className="w-10 h-10 rounded-xl bg-accent-100 flex items-center justify-center text-accent-600">
+              <Kanban size={22} weight="duotone" />
+            </div>
+            <h3 className="mt-4 font-display text-lg font-bold text-[#1c1917]">任务看板</h3>
+            <p className="mt-2 text-sm text-[#78716c] leading-relaxed">组队自动建项目空间，Kanban 拖拽管理任务，DDL 追踪不摆烂</p>
+          </Link>
         </div>
       </section>
 
@@ -171,6 +185,29 @@ export default function Home() {
         </div>
       </section>
 
+      {/* ---- 热门技能标签云 ---- */}
+      <section className="max-w-[1280px] mx-auto px-6 py-12 section-divider">
+        <h2 className="font-display text-xl font-bold text-[#1c1917] text-center">平台热门技能</h2>
+        <p className="mt-1 text-sm text-[#78716c] text-center">大家都在找这些技能的队友</p>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          {["Python", "数据分析", "Figma", "JavaScript", "Java", "PPT", "机器学习", "UI设计", "写作", "英语", "MySQL", "PS"].map((skill, i) => (
+            <span
+              key={skill}
+              className={`px-4 py-2 text-sm font-medium rounded-full transition-all hover:scale-110 cursor-default ${
+                i % 3 === 0
+                  ? "bg-warm-100 text-warm-600 text-base px-5 py-2.5"
+                  : i % 3 === 1
+                  ? "bg-accent-100 text-accent-700"
+                  : "bg-warm-100 text-warm-600"
+              }`}
+              style={{ fontSize: `${[0.85, 1.05, 0.9, 1.0, 0.95, 1.1, 0.88, 1.02, 0.92, 0.98, 0.87, 1.08][i]}rem` }}
+            >
+              {skill}
+            </span>
+          ))}
+        </div>
+      </section>
+
       {/* ---- Stats ---- */}
       <section className="max-w-[1280px] mx-auto px-6 py-16">
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
@@ -187,8 +224,13 @@ export default function Home() {
 
       {/* ---- CTA ---- */}
       <section className="max-w-[1280px] mx-auto px-6 pb-20">
-        <div className="rounded-2xl bg-accent-600 p-10 sm:p-14 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-          <div>
+        <div className="rounded-2xl relative overflow-hidden p-10 sm:p-14 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6" style={{ background: "linear-gradient(135deg, #0d9488 0%, #0f766e 100%)" }}>
+          {/* 纹理 overlay */}
+          <div className="absolute inset-0 opacity-10" style={{
+            backgroundImage: "radial-gradient(circle, white 1px, transparent 1px)",
+            backgroundSize: "20px 20px"
+          }} />
+          <div className="relative z-10">
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-white">
               准备好找到你的搭子了吗？
             </h2>
@@ -198,7 +240,7 @@ export default function Home() {
           </div>
           <Link
             to="/register"
-            className="inline-flex items-center gap-2 px-7 py-3.5 text-base font-semibold text-accent-700 bg-white rounded-full no-underline hover:bg-accent-50 active:scale-[0.98] transition-all whitespace-nowrap"
+            className="relative z-10 inline-flex items-center gap-2 px-7 py-3.5 text-base font-semibold text-accent-700 bg-white rounded-full no-underline hover:bg-accent-50 active:scale-[0.98] transition-all whitespace-nowrap"
           >
             30 秒开始
             <ArrowRight size={18} weight="bold" />
