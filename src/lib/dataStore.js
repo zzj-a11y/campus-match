@@ -85,14 +85,16 @@ export async function getUserById(userId) {
     .maybeSingle();
 
   if (!profile) return null;
+  const displayName = profile.name || "?";
   return {
     id: userId,
-    name: profile.name,
-    avatar: profile.name[0],
+    name: displayName,
+    avatar: displayName[0],
     college: profile.college || "",
     grade: profile.grade || "",
     skills: profile.skills || [],
     goal: profile.goal || "",
+    wechat: profile.wechat || "",
   };
 }
 

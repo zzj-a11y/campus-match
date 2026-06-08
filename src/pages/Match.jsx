@@ -22,6 +22,8 @@ export default function Match() {
   useEffect(() => {
     let cancelled = false;
     const slowTimer = setTimeout(() => { if (!cancelled) setSlowHint(true); }, 8000);
+    // 硬超时：15 秒后强制结束 loading
+    const hardTimer = setTimeout(() => { if (!cancelled) { setLoading(false); setSlowHint(false); } }, 15000);
     (async () => {
       try {
         const u = await getCurrentUser();
@@ -35,13 +37,14 @@ export default function Match() {
         ]);
         if (cancelled) return;
         clearTimeout(slowTimer);
+        clearTimeout(hardTimer);
         setCandidates(list);
         setMyMatches(matches);
         setAllUsers(all);
       } catch (e) { console.error(e); }
-      finally { if (!cancelled) { setLoading(false); setSlowHint(false); } }
+      finally { if (!cancelled) { clearTimeout(hardTimer); setLoading(false); setSlowHint(false); } }
     })();
-    return () => { cancelled = true; clearTimeout(slowTimer); };
+    return () => { cancelled = true; clearTimeout(slowTimer); clearTimeout(hardTimer); };
   }, []);
 
   const current = candidates[index];

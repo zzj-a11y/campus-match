@@ -44,7 +44,7 @@ const grades = ["大一", "大二", "大三", "大四", "研一", "研二"];
 
 export default function Register() {
   const navigate = useNavigate();
-  const { user, signUp } = useAuth();
+  const { user, loading: authLoading, signUp } = useAuth();
 
   // 已登录用户直接从技能步骤开始
   const [step, setStep] = useState(user ? 1 : 0);
@@ -188,6 +188,14 @@ export default function Register() {
   // 进度条——始终 4 步
   const progressSteps = [1, 2, 3, 4];
   const currentDisplayStep = step + 1;
+
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="w-6 h-6 border-2 border-accent-600 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-[680px] mx-auto px-6 py-12 relative">
