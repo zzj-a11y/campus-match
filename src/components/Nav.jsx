@@ -36,6 +36,16 @@ export default function Nav() {
 
         <div className="flex items-center gap-6">
           <Link
+            to="/"
+            className={`text-sm font-medium no-underline transition-colors ${
+              location.pathname === "/"
+                ? "text-[#0d9488]"
+                : "text-[#78716c] hover:text-[#1c1917]"
+            }`}
+          >
+            首页
+          </Link>
+          <Link
             to="/square"
             className={`text-sm font-medium no-underline transition-colors ${
               location.pathname === "/square"
