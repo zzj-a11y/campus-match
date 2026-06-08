@@ -88,10 +88,13 @@ export default function Square() {
     return () => { cancelled = true; };
   }, [collegeFilter, skillFilter]);
 
-  // Realtime 订阅：新帖自动刷新
+  // Realtime 订阅：新帖自动刷新（去重）
   useEffect(() => {
     const channel = subscribeRecruitments((newPost) => {
-      setPosts((prev) => [newPost, ...prev]);
+      setPosts((prev) => {
+        if (prev.some((p) => p.id === newPost.id)) return prev;
+        return [newPost, ...prev];
+      });
     });
     return () => channel.unsubscribe();
   }, []);
@@ -100,18 +103,19 @@ export default function Square() {
     if (!createTitle.trim() || createSkills.length === 0) return;
     setCreateSubmitting(true);
     try {
-      await addRecruitment({
+      const newPost = await addRecruitment({
         title: createTitle.trim(),
         skills: createSkills,
         college: createCollege || (user?.college) || "计算机科学学院",
       });
       toast.success("招募已发布");
+      // 手动添加到列表顶部，Realtime 回调会去重跳过
+      setPosts((prev) => [newPost, ...prev]);
       setShowCreate(false);
       setCreateTitle("");
       setCreateSkills([]);
       setCreateSkillInput("");
       setCreateCollege("");
-      loadPosts(false);
     } catch (e) {
       toast.error(e?.message || "发布失败，请重试");
       console.error("handlePublish failed:", e);
