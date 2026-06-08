@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowLeft, X, Heart, Faders, Sparkle, ChatCenteredDots } from "@phosphor-icons/react";
+import { ArrowLeft, X, Heart, Faders, Sparkle, ChatCenteredDots, MagnifyingGlass, SortAscending } from "@phosphor-icons/react";
 import { getCurrentUser, getCandidates, getAllUsers, swipeRight, swipeLeft, getUserMatches, contactAuthor } from "../lib/dataStore";
 
 export default function Match() {
@@ -18,6 +18,8 @@ export default function Match() {
   const [btnLoading, setBtnLoading] = useState(false);
   const [mode, setMode] = useState("card");
   const [allUsers, setAllUsers] = useState([]);
+  const [allSearch, setAllSearch] = useState("");
+  const [allSort, setAllSort] = useState("default");
 
   useEffect(() => {
     let cancelled = false;
@@ -112,10 +114,48 @@ export default function Match() {
           </div>
 
           {/* 模式：全部用户 */}
-          {mode === "all" && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {allUsers.length === 0 && <p className="col-span-full text-center text-sm text-[#78716c] py-8">暂无其他用户</p>}
-              {allUsers.map((u) => (
+          {mode === "all" && (() => {
+            let filteredAll = allUsers;
+            if (allSearch.trim()) {
+              const q = allSearch.trim().toLowerCase();
+              filteredAll = allUsers.filter((u) =>
+                u.name.toLowerCase().includes(q) ||
+                u.college.toLowerCase().includes(q) ||
+                u.skills.some((s) => s.toLowerCase().includes(q))
+              );
+            }
+            if (allSort === "name") {
+              filteredAll = [...filteredAll].sort((a, b) => a.name.localeCompare(b.name, "zh"));
+            } else if (allSort === "college") {
+              filteredAll = [...filteredAll].sort((a, b) => a.college.localeCompare(b.college, "zh"));
+            }
+            return (
+            <>
+              {/* Search + Sort */}
+              <div className="flex items-center gap-2 mb-4">
+                <div className="relative flex-1">
+                  <MagnifyingGlass size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#a8a29e]" />
+                  <input
+                    type="text"
+                    value={allSearch}
+                    onChange={(e) => setAllSearch(e.target.value)}
+                    placeholder="搜索姓名、学院或技能..."
+                    className="w-full pl-9 pr-3 py-2 text-sm rounded-full border border-[#e7e5e4] bg-white text-[#1c1917] placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-300"
+                  />
+                </div>
+                <select
+                  value={allSort}
+                  onChange={(e) => setAllSort(e.target.value)}
+                  className="pl-3 pr-8 py-2 text-sm rounded-full border border-[#e7e5e4] bg-white text-[#1c1917] focus:outline-none focus:ring-2 focus:ring-accent-300 appearance-none"
+                >
+                  <option value="default">默认排序</option>
+                  <option value="name">姓名排序</option>
+                  <option value="college">学院排序</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {allUsers.length === 0 && <p className="col-span-full text-center text-sm text-[#78716c] py-8">暂无其他用户</p>}
+                {filteredAll.map((u) => (
                 <div key={u.id} onClick={() => { contactAuthor(u.id).then((matchId) => navigate(`/chat/${matchId}`)).catch(console.error); }}
                   className="rounded-2xl border border-[#e7e5e4] bg-white p-4 text-center hover:shadow-[0_2px_8px_rgba(28,25,23,0.06)] hover:-translate-y-[1px] transition-all cursor-pointer">
                   <div className="w-11 h-11 rounded-full mx-auto flex items-center justify-center font-bold text-lg bg-accent-100 text-accent-700">{u.avatar}</div>
@@ -127,9 +167,14 @@ export default function Match() {
                     </div>
                   )}
                 </div>
-              ))}
-            </div>
-          )}
+                ))}
+                {allUsers.length > 0 && filteredAll.length === 0 && (
+                  <p className="col-span-full text-center text-sm text-[#78716c] py-4">没有匹配结果</p>
+                )}
+              </div>
+            </>
+            );
+          })()}
 
           {/* 模式：卡片推荐 */}
           {mode === "card" && (current ? (
@@ -150,7 +195,7 @@ export default function Match() {
                 <div className="absolute inset-0 z-10 transition-all duration-[280ms] ease-out"
                   style={{ transform: swiping === "right" ? "translateX(400px) rotate(15deg)" : swiping === "left" ? "translateX(-400px) rotate(-15deg)" : "translateX(0) rotate(0deg)", opacity: swiping ? 0 : 1 }}>
                   <div className="relative h-full rounded-[20px] border border-[#e7e5e4] bg-white p-6 shadow-[0_8px_32px_rgba(28,25,23,0.10)] flex flex-col">
-                    <div className="absolute inset-0 z-[5] cursor-pointer" onClick={handleCardChat} />
+                    <div className="absolute inset-0 z-[5] pointer-events-none" />
                     {swiping === "left" && (<div className="absolute top-8 left-6 z-20 px-4 py-1.5 rounded-lg border-2 border-red-400 rotate-[-20deg] pointer-events-none"><span className="text-2xl font-extrabold text-red-400">跳过</span></div>)}
                     {swiping === "right" && (<div className="absolute top-8 right-6 z-20 px-4 py-1.5 rounded-lg border-2 border-accent-400 rotate-[20deg] pointer-events-none"><span className="text-2xl font-extrabold text-accent-400">连接</span></div>)}
                     <div className="flex items-center gap-3 relative z-10">
@@ -159,9 +204,21 @@ export default function Match() {
                     </div>
                     <div className="mt-5 flex flex-wrap gap-2 relative z-10">{current.skills.map((s) => (<span key={s} className="px-3 py-1.5 text-sm font-medium bg-accent-100 text-accent-700 rounded-lg">{s}</span>))}</div>
                     <div className="mt-auto pt-4 border-t border-[#e7e5e4] relative z-10">
-                      <div className="text-xs text-[#78716c] mb-1">匹配理由</div>
-                      <div className="text-sm text-[#1c1917] leading-relaxed">{current.reason}</div>
-                      <div className="mt-3 text-sm font-semibold text-accent-600">{current.matchRate}% 匹配度</div>
+                      <div className="flex items-end justify-between">
+                        <div>
+                          <div className="text-xs text-[#78716c] mb-1">匹配理由</div>
+                          <div className="text-sm text-[#1c1917] leading-relaxed">{current.reason}</div>
+                          <div className="mt-3 text-sm font-semibold text-accent-600">{current.matchRate}% 匹配度</div>
+                        </div>
+                        <button
+                          onClick={handleCardChat}
+                          disabled={btnLoading}
+                          className="flex-shrink-0 inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-white bg-accent-600 rounded-full hover:bg-accent-700 active:scale-[0.98] transition-all disabled:opacity-40"
+                        >
+                          <ChatCenteredDots size={16} weight="bold" />
+                          直接对话
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>

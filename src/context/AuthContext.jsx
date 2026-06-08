@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabase";
+import toast from "../lib/toast";
+import { signOutLocal } from "../lib/dataStore";
 
 const AuthContext = createContext(null);
 
@@ -34,7 +36,7 @@ export function AuthProvider({ children }) {
       .from("profiles")
       .select("name, college, grade, skills, goal, wechat, role")
       .eq("user_id", authUser.id)
-      .maybeSingle();  // maybeSingle: 0 行返回 null，不抛异常
+      .maybeSingle();
 
     const userData = {
       id: authUser.id,
@@ -54,7 +56,7 @@ export function AuthProvider({ children }) {
     return userData;
   }
 
-  // 注册：Supabase Auth signUp — profiles 由 DB 触发器自动创建
+  // 注册
   const signUp = useCallback(async (email, password, name) => {
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -64,7 +66,6 @@ export function AuthProvider({ children }) {
     if (error) throw error;
     if (!data.user) throw new Error("注册失败，请重试");
 
-    // profiles 已由 handle_new_user() 触发器自动创建，直接加载
     return await loadProfile(data.user);
   }, []);
 
@@ -73,14 +74,18 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
 
-    return await loadProfile(data.user);
+    const userData = await loadProfile(data.user);
+    toast.success(`欢迎回来，${userData.name || '同学'}`);
+    return userData;
   }, []);
 
   // 登出
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
     localStorage.removeItem("campus_current_user");
+    signOutLocal();
     setUser(null);
+    toast.info("已安全退出");
   }, []);
 
   const value = { user, session: user ? {} : null, loading, signUp, signIn, signOut };

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { supabase } from "../lib/supabase";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -9,6 +10,28 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showReset, setShowReset] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetSent, setResetSent] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (!resetEmail.includes("@")) return;
+    setResetLoading(true);
+    setError("");
+    try {
+      const { error: resetErr } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/#/login`,
+      });
+      if (resetErr) throw resetErr;
+      setResetSent(true);
+    } catch (err) {
+      setError("发送重置邮件失败，请确认邮箱地址正确");
+    } finally {
+      setResetLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -96,10 +119,41 @@ export default function Login() {
         </div>
 
         <div className="text-right">
-          <span className="text-xs text-[#a8a29e] cursor-default" title="本演示项目暂不支持自助重置密码">
-            忘记密码？联系管理员
-          </span>
+          {resetSent ? (
+            <span className="text-xs text-emerald-600">重置邮件已发送，请检查收件箱</span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowReset(!showReset)}
+              className="text-xs text-[#a8a29e] hover:text-accent-600 transition-colors"
+            >
+              忘记密码？
+            </button>
+          )}
         </div>
+
+        {/* Reset password inline form */}
+        {showReset && !resetSent && (
+          <div className="p-4 rounded-xl bg-accent-50 border border-accent-100">
+            <p className="text-sm text-[#1c1917] mb-3">输入注册邮箱，我们将发送重置链接</p>
+            <div className="flex gap-2">
+              <input
+                type="email"
+                value={resetEmail}
+                onChange={(e) => setResetEmail(e.target.value)}
+                placeholder="yourname@example.com"
+                className="flex-1 px-3 py-2 text-sm rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400"
+              />
+              <button
+                onClick={handleResetPassword}
+                disabled={resetLoading || !resetEmail.includes("@")}
+                className="px-4 py-2 text-sm font-semibold text-white bg-accent-600 rounded-full hover:bg-accent-700 disabled:opacity-40 transition-all"
+              >
+                {resetLoading ? "发送中..." : "发送"}
+              </button>
+            </div>
+          </div>
+        )}
 
         <button
           type="submit"

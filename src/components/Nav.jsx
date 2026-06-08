@@ -9,15 +9,17 @@ export default function Nav() {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [matchCount, setMatchCount] = useState(0);
-  const [matches, setMatches] = useState([]);
 
   useEffect(() => {
+    let cancelled = false;
     if (user) {
       getUserMatches().then((list) => {
-        setMatches(list);
-        setMatchCount(list.length);
-      });
+        if (!cancelled) setMatchCount(list.length);
+      }).catch((e) => console.error("Nav matches failed:", e));
+    } else {
+      setMatchCount(0);
     }
+    return () => { cancelled = true; };
   }, [user]);
 
   const handleSignOut = async () => {

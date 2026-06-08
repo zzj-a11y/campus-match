@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, ChatCenteredDots, MagnifyingGlass } from "@phosphor-icons/react";
-import { getUserMatches } from "../lib/dataStore";
+import { ArrowLeft, ChatCenteredDots, MagnifyingGlass, X } from "@phosphor-icons/react";
+import { getUserMatches, deleteMatch } from "../lib/dataStore";
 import { useAuth } from "../context/AuthContext";
+import toast from "../lib/toast";
 
 export default function Messages() {
   const navigate = useNavigate();
@@ -29,6 +30,18 @@ export default function Messages() {
     })();
     return () => { cancelled = true; clearTimeout(slowTimer); };
   }, []);
+
+  const handleDelete = async (matchId, partnerName) => {
+    if (!window.confirm(`确定删除与「${partnerName}」的对话吗？此操作不可撤销。`)) return;
+    try {
+      await deleteMatch(matchId);
+      setMatches((prev) => prev.filter((m) => m.matchId !== matchId));
+      toast.success("对话已删除");
+    } catch (e) {
+      toast.error("删除失败，请重试");
+      console.error("deleteMatch failed:", e);
+    }
+  };
 
   const filtered = matches.filter((m) => {
     if (!search.trim()) return true;
@@ -80,7 +93,9 @@ export default function Messages() {
       {/* Conversation list */}
       {filtered.length === 0 ? (
         <div className="text-center py-20">
-          <div className="text-4xl mb-4">💬</div>
+          <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-accent-100 flex items-center justify-center">
+            <ChatCenteredDots size={28} weight="bold" className="text-accent-600" />
+          </div>
           <h2 className="font-display text-xl font-bold text-[#1c1917] mb-1">
             {matches.length === 0 ? "还没有对话" : "没有找到匹配的对话"}
           </h2>
@@ -125,7 +140,17 @@ export default function Messages() {
                   {m.lastMessage || "开始对话"}
                 </div>
               </div>
-              <ChatCenteredDots size={18} className="text-accent-300 flex-shrink-0" />
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleDelete(m.matchId, m.partner.name);
+                }}
+                className="text-[#a8a29e] hover:text-red-500 transition-colors flex-shrink-0 p-1"
+                title="删除对话"
+              >
+                <X size={16} weight="bold" />
+              </button>
             </Link>
           ))}
         </div>

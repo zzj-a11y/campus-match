@@ -4,6 +4,7 @@ import { MagnifyingGlass, Plus, CaretDown, Fire, X } from "@phosphor-icons/react
 import { getRecruitments, addRecruitment, subscribeRecruitments, contactAuthor, deleteRecruitment } from "../lib/dataStore";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import toast from "../lib/toast";
 
 const colleges = [
   "全部学院",
@@ -52,19 +53,39 @@ export default function Square() {
   const [createCollege, setCreateCollege] = useState("");
   const [createSubmitting, setCreateSubmitting] = useState(false);
 
-  const loadPosts = async () => {
-    setLoading(true);
-    const data = await getRecruitments({
-      college: collegeFilter,
-      skill: skillFilter,
-    });
-    setPosts(data);
-    setLoading(false);
+  // 加载招募帖（竞态保护 + 刷新回调）
+  const loadPosts = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
+    try {
+      const data = await getRecruitments({
+        college: collegeFilter,
+        skill: skillFilter,
+      });
+      setPosts(data);
+    } catch (e) {
+      console.error("Square loadPosts failed:", e);
+    } finally {
+      if (showLoading) setLoading(false);
+    }
   };
 
-  // 加载招募帖
   useEffect(() => {
-    loadPosts();
+    let cancelled = false;
+    (async () => {
+      setLoading(true);
+      try {
+        const data = await getRecruitments({
+          college: collegeFilter,
+          skill: skillFilter,
+        });
+        if (!cancelled) setPosts(data);
+      } catch (e) {
+        console.error("Square loadPosts failed:", e);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
   }, [collegeFilter, skillFilter]);
 
   // Realtime 订阅：新帖自动刷新
@@ -78,18 +99,25 @@ export default function Square() {
   const handlePublish = async () => {
     if (!createTitle.trim() || createSkills.length === 0) return;
     setCreateSubmitting(true);
-    await addRecruitment({
-      title: createTitle.trim(),
-      skills: createSkills,
-      college: createCollege || (user?.college) || "计算机科学学院",
-    });
-    setCreateSubmitting(false);
-    setShowCreate(false);
-    setCreateTitle("");
-    setCreateSkills([]);
-    setCreateSkillInput("");
-    setCreateCollege("");
-    loadPosts();
+    try {
+      await addRecruitment({
+        title: createTitle.trim(),
+        skills: createSkills,
+        college: createCollege || (user?.college) || "计算机科学学院",
+      });
+      toast.success("招募已发布");
+      setShowCreate(false);
+      setCreateTitle("");
+      setCreateSkills([]);
+      setCreateSkillInput("");
+      setCreateCollege("");
+      loadPosts(false);
+    } catch (e) {
+      toast.error(e?.message || "发布失败，请重试");
+      console.error("handlePublish failed:", e);
+    } finally {
+      setCreateSubmitting(false);
+    }
   };
 
   const handleCardClick = async (post) => {
@@ -193,7 +221,9 @@ export default function Square() {
         </div>
       ) : filteredPosts.length === 0 ? (
         <div className="text-center py-16">
-          <div className="text-4xl mb-3">📭</div>
+          <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-accent-100 flex items-center justify-center">
+            <MagnifyingGlass size={24} weight="bold" className="text-accent-600" />
+          </div>
           <div className="text-[#78716c]">没有找到匹配的招募帖</div>
           <button
             onClick={() => {

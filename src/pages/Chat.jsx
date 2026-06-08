@@ -9,6 +9,7 @@ import {
   subscribeMessages,
   getMatchPartner,
 } from "../lib/dataStore";
+import toast from "../lib/toast";
 
 export default function Chat() {
   const { id: matchId } = useParams();
@@ -81,11 +82,14 @@ export default function Chat() {
 
   const handleSend = async () => {
     if (!input.trim()) return;
-    const myMsg = await sendMessage(matchId, input.trim());
-    // 立即显示自己发送的消息
-    setMessages((prev) => [...prev, myMsg]);
-    setInput("");
-    // 对方的自动回复由 Realtime subscription 推送
+    try {
+      const myMsg = await sendMessage(matchId, input.trim());
+      setMessages((prev) => [...prev, myMsg]);
+      setInput("");
+    } catch (e) {
+      toast.error("消息发送失败，请重试");
+      console.error("sendMessage failed:", e);
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -96,14 +100,26 @@ export default function Chat() {
   };
 
   const handleCreateProject = async () => {
-    const project = await createProject(matchId, partner.name);
-    navigate(`/project/${project.id}`);
+    try {
+      const project = await createProject(matchId, partner.name);
+      toast.success("项目创建成功！");
+      navigate(`/project/${project.id}`);
+    } catch (e) {
+      toast.error(e?.message || "创建项目失败，请重试");
+      console.error("createProject failed:", e);
+    }
   };
 
   const handleShareWechat = async () => {
     const wxId = user.wechat || "未设置微信号";
-    const myMsg = await sendMessage(matchId, `我的微信号：${wxId}`);
-    setMessages((prev) => [...prev, myMsg]);
+    if (!window.confirm(`确定要分享你的微信号「${wxId}」给对方吗？`)) return;
+    try {
+      const myMsg = await sendMessage(matchId, `我的微信号：${wxId}`);
+      setMessages((prev) => [...prev, myMsg]);
+    } catch (e) {
+      toast.error("分享微信失败，请重试");
+      console.error("shareWechat failed:", e);
+    }
   };
 
   if (loading) {
@@ -129,17 +145,12 @@ export default function Chat() {
           </Link>
           <div className="w-10 h-10 rounded-full bg-accent-100 flex items-center justify-center text-accent-700 font-bold relative">
             {partner.avatar}
-            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-white" />
           </div>
           <div>
             <div className="font-semibold text-[#1c1917]">{partner.name}</div>
             <div className="flex items-center gap-2 text-xs text-[#78716c]">
-              <span>在线</span>
               {partner.college && (
-                <>
-                  <span className="text-[#d6d3d1]">|</span>
-                  <span className="bg-accent-100 text-accent-700 px-2 py-0.5 rounded-full text-[11px] font-medium">{partner.college}</span>
-                </>
+                <span className="bg-accent-100 text-accent-700 px-2 py-0.5 rounded-full text-[11px] font-medium">{partner.college}</span>
               )}
             </div>
           </div>

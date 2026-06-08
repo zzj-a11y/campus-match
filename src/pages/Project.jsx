@@ -58,22 +58,31 @@ export default function Project() {
   const [newTitle, setNewTitle] = useState("");
 
   useEffect(() => {
+    let cancelled = false;
     (async () => {
-      const u = await getCurrentUser();
-      if (!u) {
-        navigate("/register", { replace: true });
-        return;
-      }
-      setUser(u);
+      try {
+        const u = await getCurrentUser();
+        if (cancelled) return;
+        if (!u) {
+          navigate("/register", { replace: true });
+          return;
+        }
+        setUser(u);
 
-      const p = await getProject(projectId);
-      if (!p) {
-        navigate("/", { replace: true });
-        return;
+        const p = await getProject(projectId);
+        if (cancelled) return;
+        if (!p) {
+          navigate("/", { replace: true });
+          return;
+        }
+        setProject(p);
+      } catch (e) {
+        console.error("Project load failed:", e);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-      setProject(p);
-      setLoading(false);
     })();
+    return () => { cancelled = true; };
   }, [projectId]);
 
   if (loading) {
@@ -87,8 +96,10 @@ export default function Project() {
   if (!user || !project) return null;
 
   const refresh = async () => {
-    const p = await getProject(projectId);
-    if (p) setProject(p);
+    try {
+      const p = await getProject(projectId);
+      if (p) setProject(p);
+    } catch (e) { console.error("Project refresh failed:", e); }
   };
 
   const handleDragStart = (e, id) => {
@@ -98,9 +109,11 @@ export default function Project() {
 
   const handleDrop = async (status) => {
     if (!draggedId) return;
-    await updateTask(projectId, draggedId, { status });
-    setDraggedId(null);
-    refresh();
+    try {
+      await updateTask(projectId, draggedId, { status });
+      setDraggedId(null);
+      refresh();
+    } catch (e) { console.error("Task update failed:", e); }
   };
 
   const handleDragOver = (e) => {
@@ -110,10 +123,12 @@ export default function Project() {
 
   const handleAddTask = async () => {
     if (!newTitle.trim()) return;
-    await addTask(projectId, newTitle.trim());
-    setNewTitle("");
-    setShowNewTask(false);
-    refresh();
+    try {
+      await addTask(projectId, newTitle.trim());
+      setNewTitle("");
+      setShowNewTask(false);
+      refresh();
+    } catch (e) { console.error("Add task failed:", e); }
   };
 
   return (

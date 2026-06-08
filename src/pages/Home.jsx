@@ -242,7 +242,7 @@ export default function Home() {
             to="/register"
             className="relative z-10 inline-flex items-center gap-2 px-7 py-3.5 text-base font-semibold text-accent-700 bg-white rounded-full no-underline hover:bg-accent-50 active:scale-[0.98] transition-all whitespace-nowrap"
           >
-            30 秒开始
+            开始匹配
             <ArrowRight size={18} weight="bold" />
           </Link>
         </div>

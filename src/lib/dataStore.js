@@ -10,7 +10,18 @@ import { supabase } from "./supabase";
 function formatTime(isoString) {
   if (!isoString) return "";
   const d = new Date(isoString);
-  return d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
+  const now = new Date();
+  const diffDays = Math.floor((now - d) / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) {
+    return d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
+  } else if (diffDays === 1) {
+    return `昨天 ${d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`;
+  } else if (diffDays < 7) {
+    const days = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+    return `${days[d.getDay()]} ${d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`;
+  } else {
+    return `${d.getMonth() + 1}/${d.getDate()} ${d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`;
+  }
 }
 
 function currentUserId() {
@@ -78,18 +89,19 @@ export async function registerUser({ skills, goal, college, grade, wechat }) {
 }
 
 export async function getUserById(userId) {
+  if (!userId) return null;
   const { data: profile } = await supabase
     .from("profiles")
-    .select("name, college, grade, skills, goal")
+    .select("name, college, grade, skills, goal, wechat")
     .eq("user_id", userId)
     .maybeSingle();
 
   if (!profile) return null;
-  const displayName = profile.name || "?";
+  const displayName = profile.name || profile.college || "?";
   return {
     id: userId,
     name: displayName,
-    avatar: displayName[0],
+    avatar: displayName[0] || "?",
     college: profile.college || "",
     grade: profile.grade || "",
     skills: profile.skills || [],
@@ -108,6 +120,7 @@ export async function signInLocal(_email, _password) {
 
 export function signOutLocal() {
   setCurrentUserId(null);
+  swipedLocal.clear();
 }
 
 // ---- 本地状态：已划用户 ----
@@ -258,6 +271,15 @@ export async function swipeRight(userId) {
 
 export async function swipeLeft(userId) {
   swipedLocal.add(userId);
+}
+
+// ---- 删除匹配/对话 ----
+export async function deleteMatch(matchId) {
+  const { error } = await supabase
+    .from("matches")
+    .delete()
+    .eq("id", matchId);
+  if (error) throw error;
 }
 
 // ---- 对话 ----
@@ -412,10 +434,13 @@ export async function createProject(matchId, targetUserName) {
   if (error) throw error;
   if (!project) throw new Error("创建项目失败，请重试");
 
-  await supabase.from("project_members").insert([
+  const { error: pmError } = await supabase.from("project_members").insert([
     { project_id: project.id, user_id: user.id, role: "owner" },
     { project_id: project.id, user_id: targetUserId, role: "member" },
   ]);
+  if (pmError) throw new Error(pmError.message.includes("row-level security")
+    ? "权限不足：请联系管理员添加项目成员插入策略"
+    : `添加项目成员失败：${pmError.message}`);
 
   const { data: tasks } = await supabase
     .from("tasks")
@@ -547,7 +572,7 @@ export async function getRecruitments(filters = {}) {
   }
 
   const { data: list, error } = await query.order("created_at", { ascending: false });
-  if (error) return [];
+  if (error || !list) return [];
 
   let result = list.map((r) => ({
     id: r.id,

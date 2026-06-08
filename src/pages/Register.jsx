@@ -495,17 +495,29 @@ export default function Register() {
       )}
 
       {/* Navigation */}
-      <div className="mt-10 flex items-center justify-between">
-        {step > (user ? 1 : 0) ? (
-          <button
-            onClick={() => setStep(step - 1)}
-            className="inline-flex items-center gap-1 px-4 py-2 text-sm font-medium text-[#78716c] rounded-full hover:text-[#1c1917] transition-colors"
-          >
-            <ArrowLeft size={16} /> 上一步
-          </button>
-        ) : (
-          <div />
-        )}
+      <div className="mt-10 flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center gap-3">
+          {step > (user ? 1 : 0) ? (
+            <button
+              onClick={() => setStep(step - 1)}
+              className="inline-flex items-center gap-1 px-4 py-2 text-sm font-medium text-[#78716c] rounded-full hover:text-[#1c1917] transition-colors"
+            >
+              <ArrowLeft size={16} /> 上一步
+            </button>
+          ) : (
+            <div />
+          )}
+          {/* Skip button for steps 1-3 */}
+          {step >= 1 && step <= 3 && (
+            <button
+              onClick={() => step < 3 ? handleNext() : handleFinish()}
+              disabled={saving}
+              className="text-xs text-[#a8a29e] hover:text-[#78716c] transition-colors ml-2"
+            >
+              {saving ? "保存中..." : "稍后再说 →"}
+            </button>
+          )}
+        </div>
 
         <p className="text-sm text-[#78716c]">
           已有账号？{" "}
