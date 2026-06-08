@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowLeft, X, Heart, Faders, Sparkle, ChatCenteredDots } from "@phosphor-icons/react";
-import { getCurrentUser, getCandidates, swipeRight, swipeLeft, getUserMatches } from "../lib/dataStore";
+import { getCurrentUser, getCandidates, swipeRight, swipeLeft, getUserMatches, contactAuthor } from "../lib/dataStore";
 
 export default function Match() {
   const navigate = useNavigate();
@@ -145,7 +145,7 @@ export default function Match() {
           <div className="flex items-center justify-between mb-6">
             <Link to="/" className="text-[#78716c] hover:text-[#1c1917] transition-colors"><ArrowLeft size={22} /></Link>
             <h1 className="font-display text-lg font-bold text-[#1c1917]">发现队友</h1>
-            <button className="text-[#78716c] hover:text-[#1c1917] transition-colors"><Faders size={22} /></button>
+            <button onClick={() => navigate("/register")} className="text-[#78716c] hover:text-[#1c1917] transition-colors" title="调整匹配偏好"><Faders size={22} /></button>
           </div>
 
           {/* 卡片堆叠区 */}
@@ -177,8 +177,17 @@ export default function Match() {
               }}
             >
               <div className="relative h-full rounded-[20px] border border-[#e7e5e4] bg-white p-6 shadow-[0_8px_32px_rgba(28,25,23,0.10)] flex flex-col">
-                {/* 单击卡片 → 右滑 */}
-                <div className="absolute inset-0 z-[5] cursor-pointer" onClick={() => doSwipe("right")} />
+                {/* 单击卡片 → 直接对话 */}
+                <div className="absolute inset-0 z-[5] cursor-pointer" onClick={() => {
+                  if (btnLoading) return;
+                  setBtnLoading(true);
+                  contactAuthor(current.id).then((matchId) => {
+                    navigate(`/chat/${matchId}`);
+                  }).catch((e) => {
+                    console.error(e);
+                    setBtnLoading(false);
+                  });
+                }} />
 
                 {/* 跳过/连接印章 */}
                 {swiping === "left" && (
