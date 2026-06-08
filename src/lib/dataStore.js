@@ -114,6 +114,30 @@ const swipedLocal = new Set();
 
 // ---- 匹配 ----
 
+// 获取所有用户（不过滤已划/已匹配）
+export async function getAllUsers() {
+  const user = await getCurrentUser();
+  if (!user) return [];
+
+  const { data: allProfiles } = await supabase
+    .from("profiles")
+    .select("user_id, name, college, grade, skills, goal");
+
+  if (!allProfiles) return [];
+
+  return allProfiles
+    .filter((p) => p.user_id !== user.id)
+    .map((p) => ({
+      id: p.user_id,
+      name: p.name,
+      avatar: (p.name || "?")[0],
+      college: p.college || "",
+      grade: p.grade || "",
+      skills: p.skills || [],
+      goal: p.goal || "",
+    }));
+}
+
 export async function getCandidates() {
   try {
   const user = await getCurrentUser();
