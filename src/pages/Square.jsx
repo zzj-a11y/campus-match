@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { MagnifyingGlass, Plus, CaretDown, Fire, X } from "@phosphor-icons/react";
-import { getRecruitments, addRecruitment, subscribeRecruitments } from "../lib/dataStore";
+import { getRecruitments, addRecruitment, subscribeRecruitments, contactAuthor } from "../lib/dataStore";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const colleges = [
@@ -36,6 +37,7 @@ const skillFilters = [
 
 export default function Square() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [collegeFilter, setCollegeFilter] = useState("全部学院");
   const [skillFilter, setSkillFilter] = useState("全部技能");
   const [search, setSearch] = useState("");
@@ -88,6 +90,20 @@ export default function Square() {
     setCreateSkillInput("");
     setCreateCollege("");
     loadPosts();
+  };
+
+  const handleCardClick = async (post) => {
+    if (!user) {
+      window.location.href = "/#/login";
+      return;
+    }
+    if (post.authorId === user.id) return; // 不联系自己
+    try {
+      const matchId = await contactAuthor(post.authorId);
+      navigate(`/chat/${matchId}`);
+    } catch (e) {
+      console.error("联系失败:", e);
+    }
   };
 
   const addCreateSkill = () => {
@@ -195,6 +211,7 @@ export default function Square() {
           {filteredPosts.map((p) => (
             <div
               key={p.id}
+              onClick={() => handleCardClick(p)}
               className="rounded-2xl border border-[#e7e5e4] bg-white p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer"
             >
               <div className="flex items-start justify-between gap-2">

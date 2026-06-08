@@ -594,3 +594,40 @@ export function subscribeRecruitments(onNewPost) {
     unsubscribe: () => supabase.removeChannel(channel),
   };
 }
+
+// ---- 招募广场 → 直接联系发帖人 ----
+
+export async function contactAuthor(authorId) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("请先登录");
+
+  // 检查是否已有 match
+  const { data: existing } = await supabase
+    .from("matches")
+    .select("id, status")
+    .or(`and(user_a.eq.${user.id},user_b.eq.${authorId}),and(user_a.eq.${authorId},user_b.eq.${user.id})`)
+    .maybeSingle();
+
+  if (existing) {
+    return existing.id;
+  }
+
+  // 创建新 match（直接 matched，跳过 pending）
+  const { data: newMatch, error } = await supabase
+    .from("matches")
+    .insert({ user_a: user.id, user_b: authorId, status: "matched" })
+    .select("id")
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!newMatch) throw new Error("发起联系失败");
+
+  // 发系统消息
+  await supabase.from("messages").insert({
+    match_id: newMatch.id,
+    sender_id: user.id,
+    content: "你好！我看到你在招募广场的帖子，想联系你组队",
+  });
+
+  return newMatch.id;
+}
