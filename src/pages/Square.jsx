@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { MagnifyingGlass, Plus, CaretDown, Fire, X } from "@phosphor-icons/react";
-import { getRecruitments, addRecruitment, subscribeRecruitments, contactAuthor } from "../lib/dataStore";
+import { getRecruitments, addRecruitment, subscribeRecruitments, contactAuthor, deleteRecruitment } from "../lib/dataStore";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -244,7 +244,23 @@ export default function Square() {
               </div>
               <div className="mt-3 flex items-center justify-between text-xs text-[#78716c]">
                 <span>{p.college}</span>
-                <span>{p.time}</span>
+                <div className="flex items-center gap-2">
+                  <span>{p.time}</span>
+                  {user?.role === "admin" && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (confirm(`确定要删除「${p.title}」吗？`)) {
+                          deleteRecruitment(p.id).then(() => loadPosts()).catch(console.error);
+                        }
+                      }}
+                      className="text-[#a8a29e] hover:text-red-500 transition-colors"
+                      title="删除此帖"
+                    >
+                      <X size={14} weight="bold" />
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))}

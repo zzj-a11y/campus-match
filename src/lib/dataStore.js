@@ -30,7 +30,7 @@ export async function getCurrentUser() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("name, college, grade, skills, goal, wechat")
+    .select("name, college, grade, skills, goal, wechat, role")
     .eq("user_id", session.user.id)
     .maybeSingle();
 
@@ -46,6 +46,7 @@ export async function getCurrentUser() {
     skills: profile?.skills || [],
     goal: profile?.goal || "",
     wechat: profile?.wechat || "",
+    role: profile?.role || null,
   };
 }
 
@@ -570,6 +571,15 @@ export async function addRecruitment({ title, skills, college }) {
 }
 
 // ---- Realtime 订阅：招募广场 ----
+
+export async function deleteRecruitment(postId) {
+  const { error } = await supabase
+    .from("recruitments")
+    .delete()
+    .eq("id", postId);
+
+  if (error) throw error;
+}
 
 export function subscribeRecruitments(onNewPost) {
   const channel = supabase

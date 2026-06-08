@@ -32,7 +32,7 @@ export function AuthProvider({ children }) {
   async function loadProfile(authUser) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("name, college, grade, skills, goal, wechat")
+      .select("name, college, grade, skills, goal, wechat, role")
       .eq("user_id", authUser.id)
       .maybeSingle();  // maybeSingle: 0 行返回 null，不抛异常
 
@@ -46,6 +46,7 @@ export function AuthProvider({ children }) {
       skills: profile?.skills || [],
       goal: profile?.goal || "",
       wechat: profile?.wechat || "",
+      role: profile?.role || null,
     };
     setUser(userData);
     localStorage.setItem("campus_current_user", authUser.id);
