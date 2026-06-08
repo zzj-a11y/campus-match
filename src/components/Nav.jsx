@@ -56,43 +56,23 @@ export default function Nav() {
             匹配
           </Link>
 
-          {user && matchCount > 0 && (
-            <div className="relative group">
-              <Link
-                to={`/chat/${matches[0]?.matchId}`}
-                className={`text-sm font-medium no-underline transition-colors inline-flex items-center gap-1.5 ${
-                  location.pathname.startsWith("/chat")
-                    ? "text-[#0d9488]"
-                    : "text-[#78716c] hover:text-[#1c1917]"
-                }`}
-              >
-                <ChatCenteredDots size={16} weight="bold" />
-                对话
+          {user && (
+            <Link
+              to="/messages"
+              className={`text-sm font-medium no-underline transition-colors inline-flex items-center gap-1.5 ${
+                location.pathname === "/messages" || location.pathname.startsWith("/chat")
+                  ? "text-[#0d9488]"
+                  : "text-[#78716c] hover:text-[#1c1917]"
+              }`}
+            >
+              <ChatCenteredDots size={16} weight="bold" />
+              消息
+              {matchCount > 0 && (
                 <span className="px-1.5 py-0.5 text-[11px] font-bold text-white bg-accent-600 rounded-full leading-none">
                   {matchCount}
                 </span>
-              </Link>
-              {/* 下拉对话列表 */}
-              <div className="absolute top-full right-0 mt-2 w-64 rounded-xl border border-[#e7e5e4] bg-white shadow-[0_8px_32px_rgba(28,25,23,0.12)] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                <div className="p-2">
-                  {matches.map((m) => (
-                    <Link
-                      key={m.matchId}
-                      to={`/chat/${m.matchId}`}
-                      className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-stone-50 no-underline transition-colors"
-                    >
-                      <div className="w-8 h-8 rounded-full bg-accent-100 flex items-center justify-center text-accent-700 font-bold text-sm flex-shrink-0">
-                        {m.partner.avatar}
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-sm font-medium text-[#1c1917]">{m.partner.name}</div>
-                        <div className="text-xs text-[#78716c] truncate">{m.lastMessage || "开始对话"}</div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            </div>
+              )}
+            </Link>
           )}
 
           {user ? (
