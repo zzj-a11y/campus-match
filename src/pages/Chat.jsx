@@ -21,26 +21,40 @@ export default function Chat() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(true);
   const [partner, setPartner] = useState({ name: "队友", avatar: "队" });
+  const [slowHint, setSlowHint] = useState(false);
 
   // 加载用户和消息
   useEffect(() => {
+    let cancelled = false;
+    const slowTimer = setTimeout(() => { if (!cancelled) setSlowHint(true); }, 8000);
     (async () => {
-      const u = await getCurrentUser();
-      if (!u) {
-        navigate("/register", { replace: true });
-        return;
+      try {
+        const u = await getCurrentUser();
+        if (cancelled) return;
+        if (!u) {
+          navigate("/register", { replace: true });
+          return;
+        }
+        setUser(u);
+
+        const [p, msgs] = await Promise.all([
+          getMatchPartner(matchId, u.id).catch((e) => { console.error(e); return null; }),
+          getConversation(matchId).catch((e) => { console.error(e); return []; }),
+        ]);
+        if (cancelled) return;
+        if (p) setPartner(p);
+        setMessages(msgs);
+      } catch (e) {
+        console.error("Chat load failed:", e);
+      } finally {
+        if (!cancelled) {
+          clearTimeout(slowTimer);
+          setLoading(false);
+          setSlowHint(false);
+        }
       }
-      setUser(u);
-
-      // 加载队友信息
-      const p = await getMatchPartner(matchId, u.id);
-      if (p) setPartner(p);
-
-      // getConversation 返回的 sender 已经是 "me"/"other"，直接使用
-      const msgs = await getConversation(matchId);
-      setMessages(msgs);
-      setLoading(false);
     })();
+    return () => { cancelled = true; clearTimeout(slowTimer); };
   }, [matchId]);
 
   // Realtime 订阅
@@ -88,8 +102,11 @@ export default function Chat() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="flex flex-col items-center justify-center h-64 gap-3">
         <div className="w-6 h-6 border-2 border-accent-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-sm text-[#78716c]">
+          {slowHint ? "服务器启动中，请耐心等待..." : "加载中..."}
+        </p>
       </div>
     );
   }
