@@ -76,6 +76,7 @@ export default function Register() {
   // 自定义目标
   const [customGoal, setCustomGoal] = useState("");
   const [customGoalActive, setCustomGoalActive] = useState(false);
+  const [wechat, setWechat] = useState("");
 
   const totalSteps = 4;
   const displayTotal = 4;
@@ -162,7 +163,7 @@ export default function Register() {
     const slowTimer = setTimeout(() => setSlowHint(true), 8000);
     try {
       const finalGoal = customGoalActive ? customGoal.trim() : goal;
-      await registerUser({ skills, goal: finalGoal, college, grade });
+      await registerUser({ skills, goal: finalGoal, college, grade, wechat: wechat.trim() });
       clearTimeout(slowTimer);
 
       navigate("/match");

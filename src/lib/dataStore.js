@@ -30,7 +30,7 @@ export async function getCurrentUser() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("name, college, grade, skills, goal")
+    .select("name, college, grade, skills, goal, wechat")
     .eq("user_id", session.user.id)
     .maybeSingle();
 
@@ -45,10 +45,11 @@ export async function getCurrentUser() {
     grade: profile?.grade || "",
     skills: profile?.skills || [],
     goal: profile?.goal || "",
+    wechat: profile?.wechat || "",
   };
 }
 
-export async function registerUser({ skills, goal, college, grade }) {
+export async function registerUser({ skills, goal, college, grade, wechat }) {
   // 优先用 Supabase session（最可靠），fallback 到 localStorage
   const { data: { session } } = await supabase.auth.getSession();
   const uid = session?.user?.id || currentUserId();
@@ -57,8 +58,8 @@ export async function registerUser({ skills, goal, college, grade }) {
   // upsert：profile 存在就更新，不存在就创建（防止 DB trigger 未触发）
   const { data, error } = await supabase
     .from("profiles")
-    .upsert({ user_id: uid, skills, goal, college, grade }, { onConflict: "user_id" })
-    .select("name, college, grade, skills, goal")
+    .upsert({ user_id: uid, skills, goal, college, grade, wechat: wechat || null }, { onConflict: "user_id" })
+    .select("name, college, grade, skills, goal, wechat")
     .maybeSingle();
 
   if (error) throw error;
@@ -601,16 +602,22 @@ export async function contactAuthor(authorId) {
   const user = await getCurrentUser();
   if (!user) throw new Error("请先登录");
 
-  // 检查是否已有 match
-  const { data: existing } = await supabase
+  // 检查是否已有 match（两个 .eq() 替代复杂 .or(and())）
+  const { data: m1 } = await supabase
     .from("matches")
-    .select("id, status")
-    .or(`and(user_a.eq.${user.id},user_b.eq.${authorId}),and(user_a.eq.${authorId},user_b.eq.${user.id})`)
+    .select("id")
+    .eq("user_a", user.id)
+    .eq("user_b", authorId)
     .maybeSingle();
+  if (m1) return m1.id;
 
-  if (existing) {
-    return existing.id;
-  }
+  const { data: m2 } = await supabase
+    .from("matches")
+    .select("id")
+    .eq("user_a", authorId)
+    .eq("user_b", user.id)
+    .maybeSingle();
+  if (m2) return m2.id;
 
   // 创建新 match（直接 matched，跳过 pending）
   const { data: newMatch, error } = await supabase

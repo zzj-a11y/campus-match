@@ -100,6 +100,12 @@ export default function Chat() {
     navigate(`/project/${project.id}`);
   };
 
+  const handleShareWechat = async () => {
+    const wxId = user.wechat || "未设置微信号";
+    const myMsg = await sendMessage(matchId, `我的微信号：${wxId}`);
+    setMessages((prev) => [...prev, myMsg]);
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-64 gap-3">
@@ -138,13 +144,22 @@ export default function Chat() {
             </div>
           </div>
         </div>
-        <button
-          onClick={handleCreateProject}
-          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-accent-600 rounded-full no-underline hover:bg-accent-700 active:scale-[0.98] transition-all"
-        >
-          <Users size={16} weight="bold" />
-          确认组队
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleShareWechat}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-accent-600 bg-accent-50 rounded-full border border-accent-200 hover:bg-accent-100 active:scale-[0.98] transition-all"
+            title="分享你的微信号给对方"
+          >
+            分享微信
+          </button>
+          <button
+            onClick={handleCreateProject}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-accent-600 rounded-full no-underline hover:bg-accent-700 active:scale-[0.98] transition-all"
+          >
+            <Users size={16} weight="bold" />
+            确认组队
+          </button>
+        </div>
       </div>
 
       {/* Messages */}
