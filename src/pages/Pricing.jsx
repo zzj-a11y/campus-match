@@ -1,7 +1,36 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Star, PushPin, Lightning, Eye, Circle, Check } from "@phosphor-icons/react";
+import { useAuth } from "../context/AuthContext";
+import { upgradeSubscription } from "../lib/dataStore";
+import toast from "../lib/toast";
 
 export default function Pricing() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleUpgrade = async (tier) => {
+    if (!user) {
+      navigate("/login");
+      return;
+    }
+    try {
+      await upgradeSubscription(tier);
+      if (tier === "semester") {
+        toast.success("已升级为学期会员！");
+      } else if (tier === "yearly") {
+        toast.success("已升级为全年会员！");
+      } else if (tier === "free") {
+        toast.success("已切换到免费版");
+      }
+      // 刷新页面让 AuthContext 重新 loadProfile 拿到最新 tier
+      window.location.href = "/#/pricing";
+    } catch (e) {
+      toast.error(e.message || "升级失败，请重试");
+    }
+  };
+
+  const isCurrentTier = (tier) => user?.subscription_tier === tier;
+
   return (
     <div className="page-enter">
       {/* Section 1 — Hero + 3 Pricing Cards */}
@@ -14,12 +43,21 @@ export default function Pricing() {
           <p className="text-base text-[#78716c] mt-3 max-w-[480px]">
             核心组队功能永久免费，进阶效率工具只需两杯奶茶钱
           </p>
-          <Link
-            to="/register"
-            className="inline-flex items-center px-6 py-3 mt-6 text-sm font-semibold text-white bg-accent-600 rounded-full no-underline hover:bg-accent-700 active:scale-[0.98] transition-all"
-          >
-            开始免费使用
-          </Link>
+          {!user ? (
+            <Link
+              to="/register"
+              className="inline-flex items-center px-6 py-3 mt-6 text-sm font-semibold text-white bg-accent-600 rounded-full no-underline hover:bg-accent-700 active:scale-[0.98] transition-all"
+            >
+              开始免费使用
+            </Link>
+          ) : (
+            <button
+              onClick={() => handleUpgrade("free")}
+              className="inline-flex items-center px-6 py-3 mt-6 text-sm font-semibold text-white bg-accent-600 rounded-full hover:bg-accent-700 active:scale-[0.98] transition-all"
+            >
+              开始免费使用
+            </button>
+          )}
         </div>
 
         {/* 3 Pricing Cards */}
@@ -42,8 +80,15 @@ export default function Pricing() {
                 基础看板
               </li>
             </ul>
-            <button className="mt-6 w-full py-2.5 text-sm font-medium text-accent-600 bg-white border border-accent-600 rounded-full active:scale-[0.98] transition-all cursor-default">
-              当前方案
+            <button
+              disabled={isCurrentTier("free")}
+              className={`mt-6 w-full py-2.5 text-sm font-medium rounded-full active:scale-[0.98] transition-all ${
+                isCurrentTier("free")
+                  ? "text-accent-600 bg-white border border-accent-600 cursor-default opacity-60"
+                  : "text-accent-600 bg-white border border-accent-600 hover:bg-accent-50"
+              }`}
+            >
+              {isCurrentTier("free") ? "当前方案" : "切换到免费版"}
             </button>
           </div>
 
@@ -76,8 +121,16 @@ export default function Pricing() {
                 访客记录
               </li>
             </ul>
-            <button className="mt-6 w-full py-2.5 text-sm font-semibold text-white bg-accent-600 rounded-full hover:bg-accent-700 active:scale-[0.98] transition-all">
-              立即升级
+            <button
+              onClick={() => handleUpgrade("semester")}
+              disabled={isCurrentTier("semester")}
+              className={`mt-6 w-full py-2.5 text-sm font-semibold rounded-full active:scale-[0.98] transition-all ${
+                isCurrentTier("semester")
+                  ? "text-accent-600 bg-accent-100 cursor-default"
+                  : "text-white bg-accent-600 hover:bg-accent-700"
+              }`}
+            >
+              {isCurrentTier("semester") ? "当前方案" : "立即升级"}
             </button>
           </div>
 
@@ -103,8 +156,16 @@ export default function Pricing() {
                 报表导出
               </li>
             </ul>
-            <button className="mt-6 w-full py-2.5 text-sm font-semibold text-white bg-accent-600 rounded-full hover:bg-accent-700 active:scale-[0.98] transition-all">
-              立即升级
+            <button
+              onClick={() => handleUpgrade("yearly")}
+              disabled={isCurrentTier("yearly")}
+              className={`mt-6 w-full py-2.5 text-sm font-semibold rounded-full active:scale-[0.98] transition-all ${
+                isCurrentTier("yearly")
+                  ? "text-accent-600 bg-accent-100 cursor-default"
+                  : "text-white bg-accent-600 hover:bg-accent-700"
+              }`}
+            >
+              {isCurrentTier("yearly") ? "当前方案" : "立即升级"}
             </button>
           </div>
         </div>
@@ -216,12 +277,21 @@ export default function Pricing() {
           <h2 className="font-display text-2xl font-bold text-[#1c1917]">
             准备好提升组队效率了吗？
           </h2>
-          <Link
-            to="/register"
-            className="inline-flex items-center px-6 py-3 mt-6 text-sm font-semibold text-white bg-accent-600 rounded-full no-underline hover:bg-accent-700 active:scale-[0.98] transition-all"
-          >
-            开始免费使用
-          </Link>
+          {!user ? (
+            <Link
+              to="/register"
+              className="inline-flex items-center px-6 py-3 mt-6 text-sm font-semibold text-white bg-accent-600 rounded-full no-underline hover:bg-accent-700 active:scale-[0.98] transition-all"
+            >
+              开始免费使用
+            </Link>
+          ) : (
+            <button
+              onClick={() => handleUpgrade("free")}
+              className="inline-flex items-center px-6 py-3 mt-6 text-sm font-semibold text-white bg-accent-600 rounded-full hover:bg-accent-700 active:scale-[0.98] transition-all"
+            >
+              开始免费使用
+            </button>
+          )}
         </div>
       </section>
     </div>

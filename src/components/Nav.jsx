@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { SignOut, ChatCenteredDots } from "@phosphor-icons/react";
+import { SignOut, ChatCenteredDots, Crown, Star } from "@phosphor-icons/react";
 import { useAuth } from "../context/AuthContext";
 import { getUserMatches } from "../lib/dataStore";
 import Avatar from "../components/Avatar";
@@ -116,6 +116,18 @@ export default function Nav() {
                 <Link to="/profile" className="hidden sm:inline text-[#1c1917] font-medium no-underline hover:text-accent-600 transition-colors">
                   {user.name || user.email?.split("@")[0]}
                 </Link>
+                {user.subscription_tier === "yearly" && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold text-warm-600 bg-warm-100 rounded-full whitespace-nowrap">
+                    <Crown size={12} weight="fill" />
+                    年费会员
+                  </span>
+                )}
+                {user.subscription_tier === "semester" && (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold text-warm-600 bg-warm-100 rounded-full whitespace-nowrap">
+                    <Star size={12} weight="fill" />
+                    学期会员
+                  </span>
+                )}
               </div>
               <button
                 onClick={handleSignOut}

@@ -107,6 +107,23 @@ export async function registerUser({ skills, goal, college, grade, wechat }) {
   };
 }
 
+export async function upgradeSubscription(tier) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("请先登录");
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ subscription_tier: tier })
+    .eq("user_id", user.id);
+
+  if (error) throw error;
+
+  // 清除缓存
+  removeCached("__session__", "session_user");
+
+  return tier;
+}
+
 export async function updateProfile(updates) {
   const user = await getCurrentUser();
   if (!user) throw new Error("未登录");
