@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { User, PencilSimple, FloppyDisk, X, Plus, Camera } from "@phosphor-icons/react";
+import { Link, useNavigate } from "react-router-dom";
+import { User, PencilSimple, FloppyDisk, X, Plus, Camera, Eye } from "@phosphor-icons/react";
 import { useAuth } from "../context/AuthContext";
-import { updateProfile } from "../lib/dataStore";
+import { updateProfile, getProfileVisits } from "../lib/dataStore";
 import { uploadAvatar } from "../lib/storage";
 import Avatar from "../components/Avatar";
 import toast from "../lib/toast";
@@ -66,6 +66,13 @@ export default function Profile() {
   const [customInput, setCustomInput] = useState("");
   const allSkillOptions = [...skillOptions, ...customSkills];
 
+  // GPA + awards + visits
+  const [formGpa, setFormGpa] = useState("");
+  const [formAwards, setFormAwards] = useState([]);
+  const [awardInput, setAwardInput] = useState("");
+  const [profileVisits, setProfileVisits] = useState([]);
+  const [visitsLoading, setVisitsLoading] = useState(false);
+
   // Avatar upload
   const [avatarUploading, setAvatarUploading] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || null);
@@ -82,6 +89,8 @@ export default function Profile() {
       setFormSkills(user.skills || []);
       setFormGoal(user.goal || "");
       setFormWechat(user.wechat || "");
+      setFormGpa(user.gpa || "");
+      setFormAwards(user.awards || []);
       // Derive custom skills: skills that aren't in the preset list
       const userCustomSkills = (user.skills || []).filter(
         (s) => !skillOptions.includes(s)
@@ -94,6 +103,17 @@ export default function Profile() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // 加载访客记录（仅展示模式）
+  useEffect(() => {
+    if (user && !editing) {
+      setVisitsLoading(true);
+      getProfileVisits(user.id)
+        .then((data) => setProfileVisits(data))
+        .catch(() => {})
+        .finally(() => setVisitsLoading(false));
+    }
+  }, [user, editing]);
 
   // Sync avatar URL from user context
   useEffect(() => {
@@ -110,6 +130,8 @@ export default function Profile() {
       skills: [...formSkills],
       goal: formGoal,
       wechat: formWechat,
+      gpa: formGpa,
+      awards: [...formAwards],
     });
     setError("");
     setEditing(true);
@@ -123,6 +145,8 @@ export default function Profile() {
       setFormSkills([...snapshot.skills]);
       setFormGoal(snapshot.goal);
       setFormWechat(snapshot.wechat);
+      setFormGpa(snapshot.gpa);
+      setFormAwards([...snapshot.awards]);
       setCustomSkills(
         snapshot.skills.filter((s) => !skillOptions.includes(s))
       );
@@ -146,6 +170,8 @@ export default function Profile() {
         skills: formSkills,
         goal: formGoal,
         wechat: formWechat.trim(),
+        gpa: formGpa.trim(),
+        awards: formAwards,
       });
       toast.success("资料已保存");
       setEditing(false);
@@ -184,6 +210,28 @@ export default function Profile() {
     if (e.key === "Enter") {
       e.preventDefault();
       addCustomSkill();
+    }
+  };
+
+  const addAward = () => {
+    const trimmed = awardInput.trim();
+    if (!trimmed) return;
+    if (formAwards.includes(trimmed)) {
+      setAwardInput("");
+      return;
+    }
+    if (formAwards.length >= 5) {
+      setAwardInput("");
+      return;
+    }
+    setFormAwards([...formAwards, trimmed]);
+    setAwardInput("");
+  };
+
+  const handleAwardKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addAward();
     }
   };
 
@@ -301,6 +349,31 @@ export default function Profile() {
             </div>
           )}
 
+          {/* GPA */}
+          {formGpa && (
+            <div className="mt-5">
+              <p className="text-xs font-medium text-[#a8a29e] mb-1">GPA/绩点</p>
+              <p className="text-sm text-[#1c1917]">{formGpa}</p>
+            </div>
+          )}
+
+          {/* Awards */}
+          {formAwards.length > 0 && (
+            <div className="mt-5">
+              <p className="text-xs font-medium text-[#a8a29e] mb-2">获奖经历</p>
+              <div className="flex flex-wrap gap-2">
+                {formAwards.map((a) => (
+                  <span
+                    key={a}
+                    className="px-3 py-1 text-sm font-medium bg-warm-100 text-warm-600 rounded-full"
+                  >
+                    {a}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Goal */}
           {formGoal && (
             <div className="mt-5">
@@ -316,6 +389,47 @@ export default function Profile() {
               <p className="text-sm text-[#1c1917]">{formWechat}</p>
             </div>
           )}
+
+          {/* 谁看过我 */}
+          <div className="mt-8 pt-6 border-t border-[#e7e5e4]">
+            <div className="flex items-center gap-2 mb-4">
+              <Eye size={18} className="text-[#78716c]" />
+              <h3 className="text-sm font-semibold text-[#1c1917]">谁看过我</h3>
+            </div>
+            {visitsLoading ? (
+              <div className="flex justify-center py-4">
+                <div className="w-5 h-5 border-2 border-accent-600 border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : profileVisits.length === 0 ? (
+              <p className="text-sm text-[#a8a29e]">暂无访客记录</p>
+            ) : user?.subscription_tier === "free" ? (
+              <div>
+                <p className="text-sm text-[#78716c]">共 {profileVisits.length} 人看过</p>
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-xs text-[#a8a29e]">升级会员后解锁</span>
+                  <Link
+                    to="/pricing"
+                    className="text-xs font-medium text-accent-600 hover:text-accent-700 transition-colors"
+                  >
+                    升级会员 &rarr;
+                  </Link>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {profileVisits.map((v, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <Avatar user={v.user} size={32} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-[#1c1917] truncate">{v.user.name || "匿名用户"}</p>
+                      <p className="text-xs text-[#78716c]">{v.user.college || ""}</p>
+                    </div>
+                    <span className="text-xs text-[#a8a29e] flex-shrink-0">{v.time}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* Edit button */}
           <div className="mt-8">
@@ -394,6 +508,21 @@ export default function Profile() {
               </select>
             </div>
 
+            {/* GPA */}
+            <div>
+              <label className="block text-sm font-medium text-[#1c1917] mb-1.5">
+                GPA/绩点 <span className="text-xs text-accent-600 font-medium">会员专属</span>
+              </label>
+              <input
+                type="text"
+                value={formGpa}
+                onChange={(e) => setFormGpa(e.target.value)}
+                placeholder="例如：3.8 / 4.0"
+                maxLength={20}
+                className="w-full px-4 py-3 rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow"
+              />
+            </div>
+
             {/* Skills */}
             <div>
               <label className="block text-sm font-medium text-[#1c1917] mb-1.5">
@@ -455,6 +584,45 @@ export default function Profile() {
                   添加
                 </button>
               </div>
+            </div>
+
+            {/* Awards */}
+            <div>
+              <label className="block text-sm font-medium text-[#1c1917] mb-1.5">
+                获奖经历 <span className="text-[#a8a29e] font-normal">(最多 5 个)</span>
+              </label>
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  type="text"
+                  value={awardInput}
+                  onChange={(e) => setAwardInput(e.target.value)}
+                  onKeyDown={handleAwardKeyDown}
+                  placeholder="输入获奖经历，按回车添加"
+                  className="flex-1 px-4 py-2.5 text-sm rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow"
+                />
+                <button
+                  type="button"
+                  onClick={addAward}
+                  disabled={!awardInput.trim() || formAwards.length >= 5}
+                  className="inline-flex items-center gap-1 px-4 py-2.5 text-sm font-medium text-accent-600 bg-accent-50 rounded-lg border border-accent-200 hover:bg-accent-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Plus size={16} />
+                  添加
+                </button>
+              </div>
+              {formAwards.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {formAwards.map((a) => (
+                    <span key={a} className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium bg-warm-100 text-warm-600 rounded-lg">
+                      {a}
+                      <button onClick={() => setFormAwards(formAwards.filter((x) => x !== a))}>
+                        <X size={12} weight="bold" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              <p className="mt-2 text-xs text-[#a8a29e]">已填 {formAwards.length}/5</p>
             </div>
 
             {/* Goal */}

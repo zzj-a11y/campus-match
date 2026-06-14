@@ -47,7 +47,7 @@ export async function getCurrentUser() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("name, college, grade, skills, goal, wechat, role, avatar_url")
+    .select("name, college, grade, skills, goal, wechat, role, avatar_url, subscription_tier, gpa, awards")
     .eq("user_id", session.user.id)
     .maybeSingle();
 
@@ -65,6 +65,9 @@ export async function getCurrentUser() {
     goal: profile?.goal || "",
     wechat: profile?.wechat || "",
     role: profile?.role || null,
+    subscription_tier: profile?.subscription_tier || "free",
+    gpa: profile?.gpa || "",
+    awards: profile?.awards || [],
   };
 
   // 缓存当前用户（短 TTL：30 秒，因为 session 可能变化）
@@ -181,7 +184,7 @@ export async function getAllUsers() {
 
   const { data: allProfiles } = await supabase
     .from("profiles")
-    .select("user_id, name, college, grade, skills, goal, avatar_url");
+    .select("user_id, name, college, grade, skills, goal, avatar_url, gpa, awards, subscription_tier");
 
   if (!allProfiles) return [];
 
@@ -196,6 +199,9 @@ export async function getAllUsers() {
       grade: p.grade || "",
       skills: p.skills || [],
       goal: p.goal || "",
+      gpa: p.gpa || "",
+      awards: p.awards || [],
+      subscription_tier: p.subscription_tier || "free",
     }));
 
   setCached(user.id, cacheKey, result);
@@ -680,24 +686,32 @@ function timeAgo(timestamp) {
 }
 
 export async function getRecruitments(filters = {}) {
-  let query = supabase.from("recruitments").select("id, title, skills, college, author_id, urgent, created_at");
+  let query = supabase.from("recruitments").select("id, title, skills, college, author_id, urgent, created_at, boosted, boosted_until");
 
   if (filters.college && filters.college !== "全部学院") {
     query = query.eq("college", filters.college);
   }
 
-  const { data: list, error } = await query.order("created_at", { ascending: false });
+  const { data: list, error } = await query.order("boosted", { ascending: false }).order("created_at", { ascending: false });
   if (error || !list) return [];
 
-  let result = list.map((r) => ({
-    id: r.id,
-    title: r.title,
-    skills: r.skills || [],
-    college: r.college || "",
-    authorId: r.author_id,
-    time: r.created_at ? timeAgo(r.created_at) : "",
-    urgent: r.urgent || false,
-  }));
+  const nowISO = new Date().toISOString();
+
+  let result = list.map((r) => {
+    // 检查置顶是否过期
+    const isBoosted = r.boosted && r.boosted_until && r.boosted_until > nowISO;
+    return {
+      id: r.id,
+      title: r.title,
+      skills: r.skills || [],
+      college: r.college || "",
+      authorId: r.author_id,
+      time: r.created_at ? timeAgo(r.created_at) : "",
+      urgent: r.urgent || false,
+      boosted: isBoosted,
+      boosted_until: r.boosted_until || null,
+    };
+  });
 
   if (filters.skill && filters.skill !== "全部技能") {
     result = result.filter((r) => r.skills.includes(filters.skill));
@@ -745,6 +759,45 @@ export async function deleteRecruitment(postId) {
     .eq("id", postId);
 
   if (error) throw error;
+}
+
+// ---- 帖子置顶 ----
+
+export async function boostPost(postId) {
+  const { error } = await supabase
+    .from("recruitments")
+    .update({ boosted: true, boosted_until: new Date(Date.now() + 3*24*60*60*1000).toISOString() })
+    .eq("id", postId);
+  if (error) throw error;
+}
+
+// ---- 访客记录 ----
+
+export async function logProfileVisit(visitorId, visitedId) {
+  if (visitorId === visitedId) return;
+  // 检查24h内是否已记录
+  const { data: recent } = await supabase
+    .from("profile_visits")
+    .select("id").eq("visitor_id", visitorId).eq("visited_id", visitedId)
+    .gt("visited_at", new Date(Date.now() - 24*60*60*1000).toISOString())
+    .limit(1);
+  if (recent?.length) return;
+
+  await supabase.from("profile_visits").insert({ visitor_id: visitorId, visited_id: visitedId });
+}
+
+// 获取谁看过我（最近30天，最多20条）
+export async function getProfileVisits(userId) {
+  const { data } = await supabase
+    .from("profile_visits")
+    .select("visitor_id, visited_at, profiles!profile_visits_visitor_id_fkey(name, college, avatar_url)")
+    .eq("visited_id", userId)
+    .order("visited_at", { ascending: false })
+    .limit(20);
+  return (data || []).map(v => ({
+    user: { id: v.visitor_id, name: v.profiles?.name, college: v.profiles?.college, avatar_url: v.profiles?.avatar_url },
+    time: formatTime(v.visited_at)
+  }));
 }
 
 export function subscribeRecruitments(onNewPost) {

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
-import { ArrowLeft, X, Heart, Faders, Sparkle, ChatCenteredDots, MagnifyingGlass, SortAscending } from "@phosphor-icons/react";
+import { ArrowLeft, X, Heart, Faders, Sparkle, ChatCenteredDots, MagnifyingGlass, SortAscending, CaretDown } from "@phosphor-icons/react";
 import { getCurrentUser, getCandidates, getAllUsers, swipeRight, swipeLeft, getUserMatches, contactAuthor } from "../lib/dataStore";
 import Avatar from "../components/Avatar";
 
@@ -21,6 +21,9 @@ export default function Match() {
   const [allUsers, setAllUsers] = useState([]);
   const [allSearch, setAllSearch] = useState("");
   const [allSort, setAllSort] = useState("default");
+  const [showFilter, setShowFilter] = useState(false);
+  const [filterGpa, setFilterGpa] = useState("不限");
+  const [filterAward, setFilterAward] = useState("不限");
 
   useEffect(() => {
     let cancelled = false;
@@ -182,6 +185,22 @@ export default function Match() {
                 u.skills.some((s) => s.toLowerCase().includes(q))
               );
             }
+            // GPA 筛选
+            if (filterGpa !== "不限") {
+              const minGpa = parseFloat(filterGpa);
+              filteredAll = filteredAll.filter((u) => {
+                const gpa = parseFloat(u.gpa);
+                return !isNaN(gpa) && gpa >= minGpa;
+              });
+            }
+            // 获奖经历筛选
+            if (filterAward !== "不限") {
+              const levelMap = { "国家级": "国家", "省级": "省", "校级": "校" };
+              const keyword = levelMap[filterAward] || filterAward;
+              filteredAll = filteredAll.filter((u) =>
+                (u.awards || []).some((a) => a.includes(keyword))
+              );
+            }
             if (allSort === "name") {
               filteredAll = [...filteredAll].sort((a, b) => a.name.localeCompare(b.name, "zh"));
             } else if (allSort === "college") {
@@ -211,6 +230,66 @@ export default function Match() {
                   <option value="college">学院排序</option>
                 </select>
               </div>
+              {/* 高级筛选按钮 */}
+              <div className="flex items-center gap-2 mb-3">
+                <button
+                  onClick={() => setShowFilter(!showFilter)}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[#78716c] rounded-full border border-[#e7e5e4] hover:text-[#1c1917] hover:border-[#a8a29e] active:scale-[0.98] transition-all"
+                >
+                  筛选
+                  <CaretDown size={14} className={showFilter ? "rotate-180 transition-transform" : "transition-transform"} />
+                </button>
+              </div>
+
+              {/* 筛选面板 */}
+              {showFilter && (
+                <div className="mb-4 rounded-2xl border border-accent-100 bg-accent-50 p-4">
+                  <div className="flex flex-wrap items-end gap-4">
+                    <div>
+                      <label className="block text-xs font-medium text-[#78716c] mb-1">GPA 不低于</label>
+                      <select
+                        value={filterGpa}
+                        onChange={(e) => setFilterGpa(e.target.value)}
+                        disabled={user?.subscription_tier === "free"}
+                        className="pl-3 pr-8 py-2 text-sm rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] focus:outline-none focus:ring-2 focus:ring-accent-300 appearance-none disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        <option value="不限">不限</option>
+                        <option value="2.0">2.0</option>
+                        <option value="2.5">2.5</option>
+                        <option value="3.0">3.0</option>
+                        <option value="3.5">3.5</option>
+                        <option value="3.8">3.8</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-[#78716c] mb-1">获奖经历</label>
+                      <select
+                        value={filterAward}
+                        onChange={(e) => setFilterAward(e.target.value)}
+                        disabled={user?.subscription_tier === "free"}
+                        className="pl-3 pr-8 py-2 text-sm rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] focus:outline-none focus:ring-2 focus:ring-accent-300 appearance-none disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        <option value="不限">不限</option>
+                        <option value="有国家级">有国家级</option>
+                        <option value="有省级">有省级</option>
+                        <option value="有校级">有校级</option>
+                      </select>
+                    </div>
+                  </div>
+                  {user?.subscription_tier === "free" && (
+                    <div className="mt-3 flex items-center gap-2">
+                      <span className="text-xs text-[#a8a29e]">升级会员解锁高级筛选</span>
+                      <Link
+                        to="/pricing"
+                        className="text-xs font-medium text-accent-600 hover:text-accent-700 transition-colors"
+                      >
+                        升级会员 &rarr;
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {allUsers.length === 0 && <p className="col-span-full text-center text-sm text-[#78716c] py-8">暂无其他用户</p>}
                 {filteredAll.map((u) => (

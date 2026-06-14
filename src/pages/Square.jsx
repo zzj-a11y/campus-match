@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { MagnifyingGlass, Plus, CaretDown, Fire, X, Megaphone } from "@phosphor-icons/react";
-import { getRecruitments, addRecruitment, subscribeRecruitments, contactAuthor, deleteRecruitment } from "../lib/dataStore";
+import { MagnifyingGlass, Plus, CaretDown, Fire, X, Megaphone, PushPin } from "@phosphor-icons/react";
+import { getRecruitments, addRecruitment, subscribeRecruitments, contactAuthor, deleteRecruitment, boostPost } from "../lib/dataStore";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import toast from "../lib/toast";
@@ -53,6 +53,8 @@ export default function Square() {
   const [createSkillInput, setCreateSkillInput] = useState("");
   const [createCollege, setCreateCollege] = useState("");
   const [createSubmitting, setCreateSubmitting] = useState(false);
+  const [boostModalPost, setBoostModalPost] = useState(null);
+  const [boostConfirming, setBoostConfirming] = useState(false);
 
   // 加载招募帖（竞态保护 + 刷新回调）
   const loadPosts = async (showLoading = true) => {
@@ -122,6 +124,21 @@ export default function Square() {
       console.error("handlePublish failed:", e);
     } finally {
       setCreateSubmitting(false);
+    }
+  };
+
+  const handleBoost = async () => {
+    if (!boostModalPost) return;
+    setBoostConfirming(true);
+    try {
+      await boostPost(boostModalPost.id);
+      toast.success("置顶成功");
+      setBoostModalPost(null);
+      loadPosts(false);
+    } catch (e) {
+      toast.error(e?.message || "置顶失败");
+    } finally {
+      setBoostConfirming(false);
     }
   };
 
@@ -309,6 +326,12 @@ export default function Square() {
                         急
                       </span>
                     )}
+                    {p.boosted && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-warm-600 bg-warm-100 rounded-full">
+                        <PushPin size={14} weight="fill" className="text-warm-600" />
+                        置顶
+                      </span>
+                    )}
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-1.5">
@@ -325,6 +348,17 @@ export default function Square() {
                   <span>{p.college}</span>
                   <div className="flex items-center gap-2">
                     <span>{p.time}</span>
+                    {user && p.authorId === user.id && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setBoostModalPost(p);
+                        }}
+                        className="text-xs font-medium text-[#78716c] border border-[#e7e5e4] rounded-full px-2.5 py-0.5 hover:text-[#1c1917] hover:border-[#a8a29e] active:scale-[0.98] transition-all"
+                      >
+                        置顶
+                      </button>
+                    )}
                     {user?.role === "admin" && (
                       <button
                         onClick={(e) => {
@@ -344,6 +378,46 @@ export default function Square() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* 置顶确认弹窗 */}
+      {boostModalPost && (
+        <div
+          className="fixed inset-0 z-[110] bg-black/50 flex items-center justify-center p-6"
+          onClick={() => setBoostModalPost(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-[20px] p-6 max-w-[400px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
+          >
+            <div className="flex items-center justify-between mb-5">
+              <h2 className="font-display text-xl font-bold text-[#1c1917]">置顶帖子</h2>
+              <button
+                onClick={() => setBoostModalPost(null)}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-[#78716c] hover:bg-[#e7e5e4] transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <p className="text-sm text-[#78716c] mb-6">帖子将固定在广场顶部 3 天</p>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setBoostModalPost(null)}
+                disabled={boostConfirming}
+                className="flex-1 py-3 text-sm font-medium text-[#78716c] rounded-full border border-[#e7e5e4] hover:text-[#1c1917] hover:border-[#a8a29e] disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleBoost}
+                disabled={boostConfirming}
+                className="flex-1 py-3 text-sm font-semibold text-white bg-accent-600 rounded-full hover:bg-accent-700 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
+              >
+                {boostConfirming ? "置顶中..." : "确认置顶"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
