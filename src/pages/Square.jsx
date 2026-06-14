@@ -93,12 +93,25 @@ export default function Square() {
 
   // Realtime 订阅：新帖自动刷新（去重）
   useEffect(() => {
-    const channel = subscribeRecruitments((newPost) => {
-      setPosts((prev) => {
-        if (prev.some((p) => p.id === newPost.id)) return prev;
-        return [newPost, ...prev];
-      });
-    });
+    const channel = subscribeRecruitments(
+      // INSERT：新帖自动加入列表
+      (newPost) => {
+        setPosts((prev) => {
+          if (prev.some((p) => p.id === newPost.id)) return prev;
+          return [newPost, ...prev];
+        });
+      },
+      // UPDATE：置顶/加急状态实时同步到所有在线用户
+      (updatedPost) => {
+        setPosts((prev) =>
+          prev.map((p) =>
+            p.id === updatedPost.id
+              ? { ...p, boosted: updatedPost.boosted, boost_level: updatedPost.boost_level, boosted_until: updatedPost.boosted_until, urgent: updatedPost.urgent }
+              : p
+          )
+        );
+      }
+    );
     return () => channel.unsubscribe();
   }, []);
 

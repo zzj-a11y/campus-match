@@ -822,7 +822,7 @@ export async function getProfileVisits(userId) {
   }));
 }
 
-export function subscribeRecruitments(onNewPost) {
+export function subscribeRecruitments(onNewPost, onPostUpdate) {
   const channel = supabase
     .channel("recruitments:public")
     .on(
@@ -837,7 +837,25 @@ export function subscribeRecruitments(onNewPost) {
           authorId: payload.new.author_id,
           time: "刚刚",
           urgent: payload.new.urgent || false,
+          boosted: payload.new.boosted || false,
+          boost_level: payload.new.boost_level || 'standard',
+          boosted_until: payload.new.boosted_until || null,
         });
+      }
+    )
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "recruitments" },
+      (payload) => {
+        if (onPostUpdate) {
+          onPostUpdate({
+            id: payload.new.id,
+            boosted: payload.new.boosted || false,
+            boost_level: payload.new.boost_level || 'standard',
+            boosted_until: payload.new.boosted_until || null,
+            urgent: payload.new.urgent || false,
+          });
+        }
       }
     )
     .subscribe();
