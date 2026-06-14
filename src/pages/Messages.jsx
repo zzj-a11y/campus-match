@@ -4,6 +4,7 @@ import { ArrowLeft, ChatCenteredDots, MagnifyingGlass, X } from "@phosphor-icons
 import { getUserMatches, deleteMatch } from "../lib/dataStore";
 import { useAuth } from "../context/AuthContext";
 import toast from "../lib/toast";
+import Avatar from "../components/Avatar";
 
 export default function Messages() {
   const navigate = useNavigate();
@@ -124,13 +125,7 @@ export default function Messages() {
               to={`/chat/${m.matchId}`}
               className="flex items-center gap-4 p-4 rounded-2xl border border-[#e7e5e4] bg-white hover:shadow-[0_2px_8px_rgba(28,25,23,0.06)] hover:-translate-y-[1px] no-underline transition-all"
             >
-              <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-lg flex-shrink-0 ${
-                m.partner.avatar === "张" ? "bg-accent-100 text-accent-700"
-                : m.partner.avatar === "李" ? "bg-warm-100 text-warm-600"
-                : "bg-accent-100 text-accent-700"
-              }`}>
-                {m.partner.avatar}
-              </div>
+              <Avatar user={m.partner} size={44} />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between">
                   <div className="font-semibold text-[#1c1917]">{m.partner.name}</div>

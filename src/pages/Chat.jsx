@@ -10,6 +10,7 @@ import {
   getMatchPartner,
 } from "../lib/dataStore";
 import toast from "../lib/toast";
+import Avatar from "../components/Avatar";
 
 export default function Chat() {
   const { id: matchId } = useParams();
@@ -143,9 +144,7 @@ export default function Chat() {
           <Link to="/match" className="text-[#78716c] hover:text-[#1c1917] transition-colors">
             <ArrowLeft size={22} />
           </Link>
-          <div className="w-10 h-10 rounded-full bg-accent-100 flex items-center justify-center text-accent-700 font-bold relative">
-            {partner.avatar}
-          </div>
+          <Avatar user={partner} size={40} />
           <div>
             <div className="font-semibold text-[#1c1917]">{partner.name}</div>
             <div className="flex items-center gap-2 text-xs text-[#78716c]">

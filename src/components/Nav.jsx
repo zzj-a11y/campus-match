@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { SignOut, User, ChatCenteredDots } from "@phosphor-icons/react";
+import { SignOut, ChatCenteredDots } from "@phosphor-icons/react";
 import { useAuth } from "../context/AuthContext";
 import { getUserMatches } from "../lib/dataStore";
+import Avatar from "../components/Avatar";
 
 export default function Nav() {
   const location = useLocation();
@@ -101,7 +102,7 @@ export default function Nav() {
             /* 已登录：用户信息 + 退出 */
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 text-sm text-[#78716c]">
-                <User size={16} weight="bold" />
+                <Avatar user={user} size={28} />
                 <Link to="/profile" className="hidden sm:inline text-[#1c1917] font-medium no-underline hover:text-accent-600 transition-colors">
                   {user.name || user.email?.split("@")[0]}
                 </Link>

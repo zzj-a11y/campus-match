@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowLeft, X, Heart, Faders, Sparkle, ChatCenteredDots, MagnifyingGlass, SortAscending } from "@phosphor-icons/react";
 import { getCurrentUser, getCandidates, getAllUsers, swipeRight, swipeLeft, getUserMatches, contactAuthor } from "../lib/dataStore";
+import Avatar from "../components/Avatar";
 
 export default function Match() {
   const navigate = useNavigate();
@@ -215,7 +216,7 @@ export default function Match() {
                 {filteredAll.map((u) => (
                 <div key={u.id} onClick={() => { contactAuthor(u.id).then((matchId) => navigate(`/chat/${matchId}`)).catch(console.error); }}
                   className="rounded-2xl border border-[#e7e5e4] bg-white p-4 text-center hover:shadow-[0_2px_8px_rgba(28,25,23,0.06)] hover:-translate-y-[1px] transition-all cursor-pointer">
-                  <div className="w-11 h-11 rounded-full mx-auto flex items-center justify-center font-bold text-lg bg-accent-100 text-accent-700">{u.avatar}</div>
+                  <div className="flex justify-center"><Avatar user={u} size={44} /></div>
                   <div className="mt-2 font-semibold text-sm text-[#1c1917]">{u.name}</div>
                   <div className="text-xs text-[#78716c]">{u.college}</div>
                   {u.skills.length > 0 && (
@@ -241,7 +242,7 @@ export default function Match() {
                   <div key={c.id} className="absolute inset-0 rounded-[20px] border border-[#e7e5e4] bg-white p-6 flex flex-col"
                     style={{ transform: `scale(${0.95 - i * 0.03}) translateY(${(i + 1) * 6}px)`, zIndex: 1 - i }}>
                     <div className="flex items-center gap-3">
-                      <div className="w-14 h-14 rounded-full bg-accent-100 flex items-center justify-center text-accent-700 font-bold text-xl">{c.avatar}</div>
+                      <Avatar user={c} size={56} />
                       <div><div className="font-semibold text-lg text-[#1c1917]">{c.name}</div><div className="text-sm text-[#78716c]">{c.college} · {c.grade}</div></div>
                     </div>
                     <div className="mt-4 flex flex-wrap gap-2 opacity-60">
@@ -256,7 +257,7 @@ export default function Match() {
                     {swiping === "left" && (<div className="absolute top-8 left-6 z-20 px-4 py-1.5 rounded-lg border-2 border-red-400 rotate-[-20deg] pointer-events-none"><span className="text-2xl font-extrabold text-red-400">跳过</span></div>)}
                     {swiping === "right" && (<div className="absolute top-8 right-6 z-20 px-4 py-1.5 rounded-lg border-2 border-accent-400 rotate-[20deg] pointer-events-none"><span className="text-2xl font-extrabold text-accent-400">连接</span></div>)}
                     <div className="flex items-center gap-3 relative z-10">
-                      <div className="w-14 h-14 rounded-full bg-accent-100 flex items-center justify-center text-accent-700 font-bold text-xl">{current.avatar}</div>
+                      <Avatar user={current} size={56} />
                       <div><div className="font-semibold text-lg text-[#1c1917]">{current.name}</div><div className="text-sm text-[#78716c]">{current.college} · {current.grade}</div></div>
                     </div>
                     <div className="mt-5 flex flex-wrap gap-2 relative z-10">{current.skills.map((s) => (<span key={s} className="px-3 py-1.5 text-sm font-medium bg-accent-100 text-accent-700 rounded-lg">{s}</span>))}</div>
@@ -297,7 +298,7 @@ export default function Match() {
                   <div className="space-y-2">
                     {myMatches.map((m) => (
                       <Link key={m.matchId} to={`/chat/${m.matchId}`} className="flex items-center gap-3 p-3 rounded-xl border border-[#e7e5e4] bg-white hover:shadow-[0_2px_8px_rgba(28,25,23,0.06)] no-underline transition-all">
-                        <div className="w-10 h-10 rounded-full bg-accent-100 flex items-center justify-center text-accent-700 font-bold flex-shrink-0">{m.partner.avatar}</div>
+                        <Avatar user={m.partner} size={40} />
                         <div className="text-left min-w-0"><div className="text-sm font-medium text-[#1c1917]">{m.partner.name}</div><div className="text-xs text-[#78716c] truncate">{m.lastMessage || "开始对话"}</div></div>
                         <ChatCenteredDots size={18} className="text-accent-400 ml-auto flex-shrink-0" />
                       </Link>
@@ -320,9 +321,9 @@ export default function Match() {
               <h2 className="mt-4 font-display text-2xl font-bold text-[#1c1917]">匹配成功！</h2>
               <p className="mt-2 text-[#78716c]">你和 <span className="font-semibold text-[#1c1917]">{matchResult.targetUser.name}</span> 互相选择了对方</p>
               <div className="mt-5 flex items-center justify-center gap-4">
-                <div className="w-12 h-12 rounded-full bg-accent-100 flex items-center justify-center text-accent-700 font-bold">{user.avatar}</div>
+                <Avatar user={user} size={48} />
                 <div className="w-0.5 h-6 bg-accent-300 rounded" />
-                <div className="w-12 h-12 rounded-full bg-accent-100 flex items-center justify-center text-accent-700 font-bold">{matchResult.targetUser.avatar}</div>
+                <Avatar user={matchResult.targetUser} size={48} />
               </div>
               <button onClick={goToChat} className="mt-6 w-full py-3 text-sm font-semibold text-white bg-accent-600 rounded-full hover:bg-accent-700 active:scale-[0.98] transition-all">开始对话</button>
               <button onClick={dismissPopup} className="mt-2 w-full py-2.5 text-sm font-medium text-[#78716c] rounded-full hover:text-[#1c1917] transition-colors">继续匹配</button>

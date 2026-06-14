@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Plus, Calendar, User, Star } from "@phosphor-icons/react";
 import { motion, AnimatePresence } from "motion/react";
 import { getCurrentUser, getProject, updateTask, addTask } from "../lib/dataStore";
+import Avatar from "../components/Avatar";
 
 function TaskCard({ task, onDragStart }) {
   const isDone = task.status === "done";
@@ -145,7 +146,10 @@ export default function Project() {
             </h1>
             <div className="flex items-center gap-2 mt-0.5">
               {project.members.map((m) => (
-                <span key={m.id} className="text-xs text-[#78716c]">{m.name}</span>
+                <span key={m.id} className="inline-flex items-center gap-1 text-xs text-[#78716c]">
+                  <Avatar user={m} size={20} />
+                  {m.name}
+                </span>
               ))}
               <span className="text-xs text-[#a8a29e]">· {project.members.length} 人</span>
             </div>

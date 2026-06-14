@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, PencilSimple, FloppyDisk, X, Plus } from "@phosphor-icons/react";
+import { User, PencilSimple, FloppyDisk, X, Plus, Camera } from "@phosphor-icons/react";
 import { useAuth } from "../context/AuthContext";
 import { updateProfile } from "../lib/dataStore";
+import { uploadAvatar } from "../lib/storage";
+import Avatar from "../components/Avatar";
 import toast from "../lib/toast";
 
 const skillOptions = [
@@ -64,6 +66,10 @@ export default function Profile() {
   const [customInput, setCustomInput] = useState("");
   const allSkillOptions = [...skillOptions, ...customSkills];
 
+  // Avatar upload
+  const [avatarUploading, setAvatarUploading] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || null);
+
   // Snapshot for cancel
   const [snapshot, setSnapshot] = useState(null);
 
@@ -88,6 +94,13 @@ export default function Profile() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // Sync avatar URL from user context
+  useEffect(() => {
+    if (user?.avatar_url) {
+      setAvatarUrl(user.avatar_url);
+    }
+  }, [user?.avatar_url]);
 
   const handleEdit = () => {
     setSnapshot({
@@ -174,6 +187,23 @@ export default function Profile() {
     }
   };
 
+  const handleAvatarChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setAvatarUploading(true);
+    try {
+      const url = await uploadAvatar(file, user.id);
+      await updateProfile({ avatar_url: url });
+      setAvatarUrl(url);
+      toast.success("头像已更新");
+    } catch (err) {
+      toast.error(err?.message || "头像上传失败");
+    } finally {
+      setAvatarUploading(false);
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -208,14 +238,35 @@ export default function Profile() {
         <div className="rounded-2xl border border-[#e7e5e4] bg-white p-8">
           {/* Avatar + Name row */}
           <div className="flex items-start gap-5">
-            <div
-              className="w-16 h-16 rounded-full bg-accent-100 flex items-center justify-center flex-shrink-0"
-              style={{ minWidth: "64px", minHeight: "64px" }}
-            >
-              <span className="text-2xl font-bold text-accent-700 select-none">
-                {initial}
-              </span>
-            </div>
+            <label className="relative cursor-pointer group flex-shrink-0 active:scale-[0.98] transition-transform">
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleAvatarChange}
+                disabled={avatarUploading}
+              />
+
+              {avatarUploading ? (
+                <div
+                  className="w-16 h-16 rounded-full bg-accent-100 flex items-center justify-center"
+                  style={{ minWidth: "64px", minHeight: "64px" }}
+                >
+                  <div className="w-6 h-6 border-2 border-accent-600 border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : (
+                <Avatar user={{ ...user, avatar_url: avatarUrl }} size={64} />
+              )}
+
+              {/* Hover overlay with camera icon */}
+              <div className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/20 flex items-center justify-center transition-colors">
+                <Camera
+                  size={20}
+                  weight="bold"
+                  className="text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                />
+              </div>
+            </label>
             <div className="min-w-0">
               <h1 className="text-xl font-bold text-[#1c1917] truncate">
                 {displayName}
@@ -223,6 +274,11 @@ export default function Profile() {
               {(formCollege || formGrade) && (
                 <p className="mt-1 text-sm text-[#78716c]">
                   {[formCollege, formGrade].filter(Boolean).join(" · ")}
+                </p>
+              )}
+              {!avatarUrl && !avatarUploading && (
+                <p className="mt-1 text-xs text-[#a8a29e]">
+                  点击上传头像
                 </p>
               )}
             </div>

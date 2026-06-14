@@ -38,7 +38,7 @@ export function AuthProvider({ children }) {
   async function loadProfile(authUser) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("name, college, grade, skills, goal, wechat, role")
+      .select("name, college, grade, skills, goal, wechat, role, avatar_url")
       .eq("user_id", authUser.id)
       .maybeSingle();
 
@@ -47,6 +47,7 @@ export function AuthProvider({ children }) {
       email: authUser.email,
       name: profile?.name || authUser.email?.split("@")[0] || "",
       avatar: (profile?.name || authUser.email || "?")[0],
+      avatar_url: profile?.avatar_url || null,
       college: profile?.college || "",
       grade: profile?.grade || "",
       skills: profile?.skills || [],

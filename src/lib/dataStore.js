@@ -47,7 +47,7 @@ export async function getCurrentUser() {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("name, college, grade, skills, goal, wechat, role")
+    .select("name, college, grade, skills, goal, wechat, role, avatar_url")
     .eq("user_id", session.user.id)
     .maybeSingle();
 
@@ -58,6 +58,7 @@ export async function getCurrentUser() {
     email: session.user.email,
     name: profile?.name || session.user.email?.split("@")[0] || "",
     avatar: (profile?.name || session.user.email || "?")[0],
+    avatar_url: profile?.avatar_url || null,
     college: profile?.college || "",
     grade: profile?.grade || "",
     skills: profile?.skills || [],
@@ -110,7 +111,7 @@ export async function updateProfile(updates) {
   const { data, error } = await supabase
     .from("profiles")
     .upsert({ user_id: user.id, ...updates }, { onConflict: "user_id" })
-    .select("name, college, grade, skills, goal, wechat")
+    .select("name, college, grade, skills, goal, wechat, avatar_url")
     .maybeSingle();
 
   if (error) throw error;
@@ -126,7 +127,7 @@ export async function getUserById(userId) {
   if (!userId) return null;
   const { data: profile } = await supabase
     .from("profiles")
-    .select("name, college, grade, skills, goal, wechat")
+    .select("name, college, grade, skills, goal, wechat, avatar_url")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -136,6 +137,7 @@ export async function getUserById(userId) {
     id: userId,
     name: displayName,
     avatar: displayName[0] || "?",
+    avatar_url: profile?.avatar_url || null,
     college: profile.college || "",
     grade: profile.grade || "",
     skills: profile.skills || [],
@@ -179,7 +181,7 @@ export async function getAllUsers() {
 
   const { data: allProfiles } = await supabase
     .from("profiles")
-    .select("user_id, name, college, grade, skills, goal");
+    .select("user_id, name, college, grade, skills, goal, avatar_url");
 
   if (!allProfiles) return [];
 
@@ -189,6 +191,7 @@ export async function getAllUsers() {
       id: p.user_id,
       name: p.name,
       avatar: (p.name || "?")[0],
+      avatar_url: p.avatar_url || null,
       college: p.college || "",
       grade: p.grade || "",
       skills: p.skills || [],
@@ -230,7 +233,7 @@ export async function getCandidates() {
 
   const { data: allProfiles, error: apError } = await supabase
     .from("profiles")
-    .select("user_id, name, college, grade, skills, goal");
+    .select("user_id, name, college, grade, skills, goal, avatar_url");
 
   if (apError) { console.error("getCandidates profiles error:", apError); return []; }
   if (!allProfiles) return [];
@@ -257,6 +260,7 @@ export async function getCandidates() {
         id: p.user_id,
         name: p.name,
         avatar: p.name[0],
+        avatar_url: p.avatar_url || null,
         college: p.college,
         grade: p.grade,
         skills: pSkills,
@@ -459,7 +463,7 @@ export async function getUserMatches() {
   // 批量获取所有 partner profiles（替代 N 次 getUserById）
   const { data: profiles, error: pError } = await supabase
     .from("profiles")
-    .select("user_id, name, college, grade, skills, goal")
+    .select("user_id, name, college, grade, skills, goal, avatar_url")
     .in("user_id", partnerIds);
 
   if (pError) console.error("getUserMatches profiles batch error:", pError);
@@ -471,6 +475,7 @@ export async function getUserMatches() {
         id: p.user_id,
         name: p.name || p.college || "?",
         avatar: (p.name || p.college || "?")[0],
+        avatar_url: p.avatar_url || null,
         college: p.college || "",
         grade: p.grade || "",
         skills: p.skills || [],
