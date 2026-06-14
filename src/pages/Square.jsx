@@ -132,9 +132,16 @@ export default function Square() {
     setBoostConfirming(true);
     try {
       await boostPost(boostModalPost.id, level);
+      // 乐观更新：直接改本地状态，不等 Supabase 刷新
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === boostModalPost.id
+            ? { ...p, boosted: true, boost_level: level, boosted_until: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString() }
+            : p
+        )
+      );
       toast.success(level === 'super' ? "已设置超级置顶" : "已设置标准置顶");
       setBoostModalPost(null);
-      loadPosts(false);
     } catch (e) {
       toast.error(e?.message || "置顶失败");
     } finally {
