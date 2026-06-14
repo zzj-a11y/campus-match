@@ -1,0 +1,48 @@
+const ADS = [
+  // 考研考公
+  { id: 'ad-1', category: '考研考公', brand: '卓京考研', title: '25考研暑期集训营',
+    tags: ['名师面授', '小班教学', '不过免费重读'],
+    review: '自己刷题总是没方向，老师梳理完思路清楚多了',
+    reviewer: '计科院 大三 陈同学', price: '¥699起', cta: '查看详情',
+    variant: 'amber-stripe' },
+  { id: 'ad-2', category: '考研考公', brand: '粉笔公考', title: '2026国考/省考系统班',
+    tags: ['直播+回放', '1对1申论批改', '时政热点'],
+    review: '跟着刷了三个月，行测从50提到了70+',
+    reviewer: '管理学院 大四 马学姐', price: '¥499起', cta: '领取资料',
+    variant: 'amber-stripe' },
+  // 本地生活
+  { id: 'ad-3', category: '本地生活', brand: '白云驾校', title: '学生专属全包班',
+    tags: ['校内练车', '随到随学', '不过包赔'],
+    review: '教练人挺好不会骂人，科二科三一把过',
+    reviewer: '自动化学院 大三 刘同学', price: '¥3280', cta: '报名咨询',
+    variant: 'plain' },
+  { id: 'ad-4', category: '本地生活', brand: '印萌打印', title: '论文季双面打印8折',
+    tags: ['激光彩打', '胶装装订', '24小时'],
+    review: '毕设论文打了五本，比校外便宜一半',
+    reviewer: '财经学院 大四 孙学姐', price: '¥0.05/面', cta: '立即下单',
+    variant: 'plain' },
+  // 数码技能
+  { id: 'ad-5', category: '数码技能', brand: '极客维修', title: '笔记本清灰换硅脂',
+    tags: ['免费检测', '当天取机', '三个月保修'],
+    review: '游戏本清完灰温度降了15度，风扇也不吵了',
+    reviewer: '计算机学院 大二 林同学', price: '¥49起', cta: '预约维修',
+    variant: 'plain' },
+  { id: 'ad-6', category: '数码技能', brand: '职徒简历', title: 'AI简历优化免费评测',
+    tags: ['智能打分', '模板推荐', '大厂HR把关'],
+    review: '改完简历投了五家，三家给了面试机会',
+    reviewer: '管理学院 大四 杨学长', price: '免费试用', cta: '免费试用',
+    variant: 'plain' },
+  // 品牌赞助
+  { id: 'ad-7', category: '品牌赞助', brand: '瑞幸咖啡', title: '校园店新用户首杯免费',
+    tags: ['生椰拿铁', '校门口自提', '学生专享'],
+    review: '每天早八前一杯，比食堂豆浆好喝多了',
+    reviewer: '美术学院 大三 沈同学', price: '首杯0元', cta: '领取优惠',
+    variant: 'brand-tint' },
+  { id: 'ad-8', category: '品牌赞助', brand: '支付宝校园', title: '学生认证海底捞6.9折',
+    tags: ['学信网认证', '吃喝玩乐', '每月更新'],
+    review: '认证完直接领了20块无门槛券，真香',
+    reviewer: '机电学院 大二 赵同学', price: '免费认证', cta: '立即认证',
+    variant: 'brand-tint' },
+];
+export const CATEGORIES = ['全部', '考研考公', '本地生活', '数码技能', '品牌赞助'];
+export default ADS;

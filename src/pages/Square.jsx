@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { MagnifyingGlass, Plus, CaretDown, Fire, X } from "@phosphor-icons/react";
+import { MagnifyingGlass, Plus, CaretDown, Fire, X, Megaphone } from "@phosphor-icons/react";
 import { getRecruitments, addRecruitment, subscribeRecruitments, contactAuthor, deleteRecruitment } from "../lib/dataStore";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import toast from "../lib/toast";
+import ADS from "../data/ads";
 
 const colleges = [
   "全部学院",
@@ -156,6 +157,17 @@ export default function Square() {
     );
   });
 
+  // 每5条普通帖后插入1条推广摘要（前3条广告轮换）
+  const adsForFeed = ADS.slice(0, 3);
+  const postsWithAds = filteredPosts.flatMap((p, i) => {
+    const items = [p];
+    if ((i + 1) % 5 === 0 && i < filteredPosts.length - 1) {
+      const ad = adsForFeed[Math.floor(i / 5) % adsForFeed.length];
+      items.push({ type: "ad", ...ad });
+    }
+    return items;
+  });
+
   return (
     <div className="max-w-[960px] mx-auto px-6 py-8">
       {/* Header */}
@@ -242,62 +254,96 @@ export default function Square() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredPosts.map((p) => (
-            <div
-              key={p.id}
-              onClick={() => handleCardClick(p)}
-              className="rounded-2xl border border-[#e7e5e4] bg-white p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer"
-            >
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="font-semibold text-[#1c1917] leading-snug group-hover:text-accent-700 transition-colors">
-                  {p.title}
-                </h3>
-                <div className="flex items-center gap-1.5 flex-shrink-0">
-                  {p.time === "刚刚" && (
-                    <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-accent-600 bg-accent-100 rounded-full">
-                      新
+          {postsWithAds.map((p) => {
+            // 推广摘要卡片
+            if (p.type === "ad") {
+              return (
+                <div
+                  key={`ad-${p.id}`}
+                  onClick={() => navigate("/ads")}
+                  className="rounded-2xl border border-[#e7e5e4] bg-white p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-bold text-warm-600 bg-warm-100 rounded-full">
+                      <Megaphone size={11} weight="fill" /> 推广
                     </span>
-                  )}
-                  {p.urgent && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-warm-600 bg-warm-100 rounded-full">
-                      <Fire size={12} weight="fill" />
-                      急
-                    </span>
-                  )}
+                    <span className="text-xs text-[#a8a29e]">{p.category}</span>
+                  </div>
+                  <h3 className="font-semibold text-[#1c1917] mb-2">{p.brand} · {p.title}</h3>
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {p.tags.map((t) => (
+                      <span key={t} className="px-2 py-0.5 text-[11px] font-medium bg-stone-100 text-[#78716c] rounded-md">{t}</span>
+                    ))}
+                  </div>
+                  <p className="text-sm text-[#78716c] italic leading-relaxed mb-3">
+                    &ldquo;{p.review}&rdquo; - {p.reviewer}
+                  </p>
+                  <div className="flex items-center justify-between pt-3 border-t border-[#e7e5e4]">
+                    <span className="text-sm font-semibold text-accent-700">{p.price}</span>
+                    <span className="inline-flex items-center px-4 py-2 text-xs font-semibold text-white bg-accent-600 rounded-full cursor-pointer whitespace-nowrap">{p.cta}</span>
+                  </div>
                 </div>
-              </div>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {p.skills.map((s) => (
-                  <span
-                    key={s}
-                    className="px-2.5 py-0.5 text-xs font-medium bg-accent-100 text-accent-700 rounded-md"
-                  >
-                    {s}
-                  </span>
-                ))}
-              </div>
-              <div className="mt-3 flex items-center justify-between text-xs text-[#78716c]">
-                <span>{p.college}</span>
-                <div className="flex items-center gap-2">
-                  <span>{p.time}</span>
-                  {user?.role === "admin" && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (confirm(`确定要删除「${p.title}」吗？`)) {
-                          deleteRecruitment(p.id).then(() => loadPosts()).catch(console.error);
-                        }
-                      }}
-                      className="text-[#a8a29e] hover:text-red-500 transition-colors"
-                      title="删除此帖"
+              );
+            }
+
+            // 普通招募帖
+            return (
+              <div
+                key={p.id}
+                onClick={() => handleCardClick(p)}
+                className="rounded-2xl border border-[#e7e5e4] bg-white p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <h3 className="font-semibold text-[#1c1917] leading-snug group-hover:text-accent-700 transition-colors">
+                    {p.title}
+                  </h3>
+                  <div className="flex items-center gap-1.5 flex-shrink-0">
+                    {p.time === "刚刚" && (
+                      <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-accent-600 bg-accent-100 rounded-full">
+                        新
+                      </span>
+                    )}
+                    {p.urgent && (
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-warm-600 bg-warm-100 rounded-full">
+                        <Fire size={12} weight="fill" />
+                        急
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {p.skills.map((s) => (
+                    <span
+                      key={s}
+                      className="px-2.5 py-0.5 text-xs font-medium bg-accent-100 text-accent-700 rounded-md"
                     >
-                      <X size={14} weight="bold" />
-                    </button>
-                  )}
+                      {s}
+                    </span>
+                  ))}
+                </div>
+                <div className="mt-3 flex items-center justify-between text-xs text-[#78716c]">
+                  <span>{p.college}</span>
+                  <div className="flex items-center gap-2">
+                    <span>{p.time}</span>
+                    {user?.role === "admin" && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm(`确定要删除「${p.title}」吗？`)) {
+                            deleteRecruitment(p.id).then(() => loadPosts()).catch(console.error);
+                          }
+                        }}
+                        className="text-[#a8a29e] hover:text-red-500 transition-colors"
+                        title="删除此帖"
+                      >
+                        <X size={14} weight="bold" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

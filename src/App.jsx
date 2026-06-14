@@ -8,6 +8,7 @@ import Match from "./pages/Match";
 import Chat from "./pages/Chat";
 import Project from "./pages/Project";
 import Square from "./pages/Square";
+import Ads from "./pages/Ads";
 import Messages from "./pages/Messages";
 
 export default function App() {
@@ -19,6 +20,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/square" element={<Square />} />
+        <Route path="/ads" element={<Ads />} />
         <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
 
         {/* 需要登录的页面 */}

@@ -58,6 +58,16 @@ export default function Nav() {
             广场
           </Link>
           <Link
+            to="/ads"
+            className={`text-sm font-medium no-underline transition-colors ${
+              location.pathname === "/ads"
+                ? "text-[#0d9488]"
+                : "text-[#78716c] hover:text-[#1c1917]"
+            }`}
+          >
+            广告
+          </Link>
+          <Link
             to="/match"
             className={`text-sm font-medium no-underline transition-colors ${
               location.pathname === "/match"
