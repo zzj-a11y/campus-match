@@ -10,6 +10,7 @@ import Project from "./pages/Project";
 import Square from "./pages/Square";
 import Ads from "./pages/Ads";
 import Messages from "./pages/Messages";
+import Profile from "./pages/Profile";
 
 export default function App() {
   return (
@@ -37,6 +38,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Chat />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
             </ProtectedRoute>
           }
         />

@@ -102,9 +102,9 @@ export default function Nav() {
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 text-sm text-[#78716c]">
                 <User size={16} weight="bold" />
-                <span className="hidden sm:inline text-[#1c1917] font-medium">
+                <Link to="/profile" className="hidden sm:inline text-[#1c1917] font-medium no-underline hover:text-accent-600 transition-colors">
                   {user.name || user.email?.split("@")[0]}
-                </span>
+                </Link>
               </div>
               <button
                 onClick={handleSignOut}

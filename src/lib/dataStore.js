@@ -103,6 +103,25 @@ export async function registerUser({ skills, goal, college, grade, wechat }) {
   };
 }
 
+export async function updateProfile(updates) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("未登录");
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .upsert({ user_id: user.id, ...updates }, { onConflict: "user_id" })
+    .select("name, college, grade, skills, goal, wechat")
+    .maybeSingle();
+
+  if (error) throw error;
+  if (!data) throw new Error("保存失败，请重试");
+
+  // 清除缓存让下次 getCurrentUser 拿到新数据
+  removeCached("__session__", "session_user");
+
+  return data;
+}
+
 export async function getUserById(userId) {
   if (!userId) return null;
   const { data: profile } = await supabase
