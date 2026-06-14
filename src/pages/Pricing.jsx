@@ -19,8 +19,8 @@ export default function Pricing() {
         toast.success("已升级为学期会员！");
       } else if (tier === "yearly") {
         toast.success("已升级为全年会员！");
-      } else if (tier === "free") {
-        toast.success("已切换到免费版");
+      } else {
+        toast.success("已激活会员，畅享全部功能！");
       }
       // 刷新页面让 AuthContext 重新 loadProfile 拿到最新 tier
       window.location.href = "/#/pricing";
@@ -52,7 +52,7 @@ export default function Pricing() {
             </Link>
           ) : (
             <button
-              onClick={() => handleUpgrade("free")}
+              onClick={() => handleUpgrade("yearly")}
               className="inline-flex items-center px-6 py-3 mt-6 text-sm font-semibold text-white bg-accent-600 rounded-full hover:bg-accent-700 active:scale-[0.98] transition-all"
             >
               开始免费使用
@@ -286,7 +286,7 @@ export default function Pricing() {
             </Link>
           ) : (
             <button
-              onClick={() => handleUpgrade("free")}
+              onClick={() => handleUpgrade("yearly")}
               className="inline-flex items-center px-6 py-3 mt-6 text-sm font-semibold text-white bg-accent-600 rounded-full hover:bg-accent-700 active:scale-[0.98] transition-all"
             >
               开始免费使用
