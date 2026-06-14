@@ -9,6 +9,7 @@ import Chat from "./pages/Chat";
 import Project from "./pages/Project";
 import Square from "./pages/Square";
 import Ads from "./pages/Ads";
+import Pricing from "./pages/Pricing";
 import Messages from "./pages/Messages";
 import Profile from "./pages/Profile";
 
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/square" element={<Square />} />
         <Route path="/ads" element={<Ads />} />
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
 
         {/* 需要登录的页面 */}

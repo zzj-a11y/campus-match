@@ -69,6 +69,16 @@ export default function Nav() {
             广告
           </Link>
           <Link
+            to="/pricing"
+            className={`text-sm font-medium no-underline transition-colors ${
+              location.pathname === "/pricing"
+                ? "text-[#0d9488]"
+                : "text-[#78716c] hover:text-[#1c1917]"
+            }`}
+          >
+            会员
+          </Link>
+          <Link
             to="/match"
             className={`text-sm font-medium no-underline transition-colors ${
               location.pathname === "/match"
