@@ -4,8 +4,18 @@
 // ============================================================
 
 import { supabase } from "./supabase";
+import { getCached, setCached, removeCached, clearUserCache } from "./cache";
 
 // ---- 辅助 ----
+
+function currentUserId() {
+  return localStorage.getItem("campus_current_user");
+}
+
+function setCurrentUserId(id) {
+  if (id) localStorage.setItem("campus_current_user", id);
+  else localStorage.removeItem("campus_current_user");
+}
 
 function formatTime(isoString) {
   if (!isoString) return "";
@@ -24,18 +34,14 @@ function formatTime(isoString) {
   }
 }
 
-function currentUserId() {
-  return localStorage.getItem("campus_current_user");
-}
-
-function setCurrentUserId(id) {
-  if (id) localStorage.setItem("campus_current_user", id);
-  else localStorage.removeItem("campus_current_user");
-}
-
 // ---- Auth / 用户 ----
 
 export async function getCurrentUser() {
+  // 内存缓存检查（用于同一页面渲染周期内去重）
+  const sessionKey = "session_user";
+  const sessionCached = getCached("__session__", sessionKey);
+  if (sessionCached) return sessionCached;
+
   const { data: { session } } = await supabase.auth.getSession();
   if (!session?.user) return null;
 
@@ -47,7 +53,7 @@ export async function getCurrentUser() {
 
   setCurrentUserId(session.user.id);
 
-  return {
+  const result = {
     id: session.user.id,
     email: session.user.email,
     name: profile?.name || session.user.email?.split("@")[0] || "",
@@ -59,6 +65,11 @@ export async function getCurrentUser() {
     wechat: profile?.wechat || "",
     role: profile?.role || null,
   };
+
+  // 缓存当前用户（短 TTL：30 秒，因为 session 可能变化）
+  setCached("__session__", sessionKey, result);
+
+  return result;
 }
 
 export async function registerUser({ skills, goal, college, grade, wechat }) {
@@ -76,6 +87,10 @@ export async function registerUser({ skills, goal, college, grade, wechat }) {
 
   if (error) throw error;
   if (!data) throw new Error("保存资料失败，请重试");
+
+  // 用户资料变了，清除相关缓存
+  removeCached(uid, "all_users");
+  removeCached("__session__", "session_user");
 
   return {
     id: uid,
@@ -119,6 +134,11 @@ export async function signInLocal(_email, _password) {
 }
 
 export function signOutLocal() {
+  const uid = currentUserId();
+  if (uid) {
+    removeCached("__session__", "session_user");
+    clearUserCache(uid);
+  }
   setCurrentUserId(null);
   swipedLocal.clear();
 }
@@ -134,13 +154,17 @@ export async function getAllUsers() {
   const user = await getCurrentUser();
   if (!user) return [];
 
+  const cacheKey = "all_users";
+  const cached = getCached(user.id, cacheKey);
+  if (cached) return cached;
+
   const { data: allProfiles } = await supabase
     .from("profiles")
     .select("user_id, name, college, grade, skills, goal");
 
   if (!allProfiles) return [];
 
-  return allProfiles
+  const result = allProfiles
     .filter((p) => p.user_id !== user.id)
     .map((p) => ({
       id: p.user_id,
@@ -151,12 +175,19 @@ export async function getAllUsers() {
       skills: p.skills || [],
       goal: p.goal || "",
     }));
+
+  setCached(user.id, cacheKey, result);
+  return result;
 }
 
 export async function getCandidates() {
   try {
   const user = await getCurrentUser();
   if (!user) return [];
+
+  const cacheKey = "candidates";
+  const cached = getCached(user.id, cacheKey);
+  if (cached) return cached;
 
   const userSkills = user.skills || [];
   const userGoal = user.goal;
@@ -217,6 +248,7 @@ export async function getCandidates() {
     });
 
   candidates.sort((a, b) => b.matchRate - a.matchRate);
+  setCached(user.id, cacheKey, candidates);
   return candidates;
   } catch (e) { console.error("getCandidates crash:", e); return []; }
 }
@@ -224,6 +256,10 @@ export async function getCandidates() {
 export async function swipeRight(userId) {
   const user = await getCurrentUser();
   if (!user) return null;
+
+  // 清除缓存：匹配列表和推荐候选人都可能变化
+  removeCached(user.id, "user_matches");
+  removeCached(user.id, "candidates");
 
   swipedLocal.add(userId);
 
@@ -270,6 +306,9 @@ export async function swipeRight(userId) {
 }
 
 export async function swipeLeft(userId) {
+  // 清除候选人缓存
+  const uid = currentUserId();
+  if (uid) removeCached(uid, "candidates");
   swipedLocal.add(userId);
 }
 
@@ -280,6 +319,9 @@ export async function deleteMatch(matchId) {
     .delete()
     .eq("id", matchId);
   if (error) throw error;
+  // 清除匹配列表缓存
+  const uid = currentUserId();
+  if (uid) removeCached(uid, "user_matches");
 }
 
 // ---- 对话 ----
@@ -329,6 +371,9 @@ export async function sendMessage(matchId, text) {
   if (error) throw error;
   if (!msg) throw new Error("发送失败，请重试");
 
+  // 清除匹配列表缓存（最后一条消息变了）
+  removeCached(user.id, "user_matches");
+
   return {
     id: msg.id,
     sender: "me",
@@ -370,6 +415,10 @@ export async function getUserMatches() {
   const user = await getCurrentUser();
   if (!user) return [];
 
+  const cacheKey = "user_matches";
+  const cached = getCached(user.id, cacheKey);
+  if (cached) return cached;
+
   const { data: matches, error: mError } = await supabase
     .from("matches")
     .select("id, user_a, user_b")
@@ -377,30 +426,72 @@ export async function getUserMatches() {
     .or(`user_a.eq.${user.id},user_b.eq.${user.id}`);
 
   if (mError) { console.error("getUserMatches error:", mError); return []; }
-  if (!matches) return [];
-
-  const result = [];
-  for (const m of matches) {
-    const partnerId = m.user_a === user.id ? m.user_b : m.user_a;
-    const partner = await getUserById(partnerId);
-
-    const { data: lastMsgs } = await supabase
-      .from("messages")
-      .select("content, sent_at")
-      .eq("match_id", m.id)
-      .order("sent_at", { ascending: false })
-      .limit(1);
-
-    const lastMsg = lastMsgs?.[0];
-
-    result.push({
-      matchId: m.id,
-      partner: partner || { id: partnerId, name: "队友", avatar: "队" },
-      lastMessage: lastMsg ? lastMsg.content : "",
-      lastTime: lastMsg ? formatTime(lastMsg.sent_at) : "",
-    });
+  if (!matches || matches.length === 0) {
+    setCached(user.id, cacheKey, []);
+    return [];
   }
 
+  // 收集所有 partner ID 和 match ID，进行一次批量查询
+  const partnerIds = matches.map((m) =>
+    m.user_a === user.id ? m.user_b : m.user_a
+  );
+  const matchIds = matches.map((m) => m.id);
+
+  // 批量获取所有 partner profiles（替代 N 次 getUserById）
+  const { data: profiles, error: pError } = await supabase
+    .from("profiles")
+    .select("user_id, name, college, grade, skills, goal")
+    .in("user_id", partnerIds);
+
+  if (pError) console.error("getUserMatches profiles batch error:", pError);
+
+  const profileMap = {};
+  if (profiles) {
+    for (const p of profiles) {
+      profileMap[p.user_id] = {
+        id: p.user_id,
+        name: p.name || p.college || "?",
+        avatar: (p.name || p.college || "?")[0],
+        college: p.college || "",
+        grade: p.grade || "",
+        skills: p.skills || [],
+        goal: p.goal || "",
+      };
+    }
+  }
+
+  // 批量获取所有 match 的最后一条消息（替代 N 次单条查询）
+  const { data: allMsgs } = await supabase
+    .from("messages")
+    .select("match_id, content, sent_at")
+    .in("match_id", matchIds)
+    .order("sent_at", { ascending: false });
+
+  // 按 match_id 分组，每组取第一条（即最新消息）
+  const lastMsgMap = {};
+  if (allMsgs) {
+    for (const msg of allMsgs) {
+      if (!lastMsgMap[msg.match_id]) {
+        lastMsgMap[msg.match_id] = msg;
+      }
+    }
+  }
+
+  const result = matches.map((m) => {
+    const partnerId = m.user_a === user.id ? m.user_b : m.user_a;
+    const partner = profileMap[partnerId] || {
+      id: partnerId, name: "队友", avatar: "队",
+    };
+    const lastMsg = lastMsgMap[m.id];
+    return {
+      matchId: m.id,
+      partner,
+      lastMessage: lastMsg ? lastMsg.content : "",
+      lastTime: lastMsg ? formatTime(lastMsg.sent_at) : "",
+    };
+  });
+
+  setCached(user.id, cacheKey, result);
   return result;
   } catch (e) { console.error("getUserMatches crash:", e); return []; }
 }
@@ -696,6 +787,9 @@ export async function contactAuthor(authorId) {
     sender_id: user.id,
     content: "你好！我看到你在招募广场的帖子，想联系你组队",
   });
+
+  // 清除匹配列表缓存（新增了对话）
+  removeCached(user.id, "user_matches");
 
   return newMatch.id;
 }

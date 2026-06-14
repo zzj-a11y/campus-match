@@ -15,7 +15,7 @@ export default function Messages() {
 
   useEffect(() => {
     let cancelled = false;
-    const slowTimer = setTimeout(() => { if (!cancelled) setSlowHint(true); }, 8000);
+    const slowTimer = setTimeout(() => { if (!cancelled) setSlowHint(true); }, 5000);
     (async () => {
       try {
         if (!user) { navigate("/login", { replace: true }); return; }

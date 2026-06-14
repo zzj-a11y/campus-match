@@ -1,7 +1,11 @@
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabase";
 import toast from "../lib/toast";
-import { signOutLocal } from "../lib/dataStore";
+import {
+  signOutLocal,
+  getAllUsers,
+  getUserMatches,
+} from "../lib/dataStore";
 
 const AuthContext = createContext(null);
 
@@ -53,6 +57,10 @@ export function AuthProvider({ children }) {
     setUser(userData);
     localStorage.setItem("campus_current_user", authUser.id);
     setLoading(false);
+
+    // 后台预加载热点数据（不阻塞渲染，不抛错）
+    preloadCriticalData();
+
     return userData;
   }
 
@@ -87,6 +95,14 @@ export function AuthProvider({ children }) {
     setUser(null);
     toast.info("已安全退出");
   }, []);
+
+  // 后台静默预加载热点数据，缓存到 localStorage 和内存
+  function preloadCriticalData() {
+    setTimeout(() => {
+      getAllUsers().catch(() => {});
+      getUserMatches().catch(() => {});
+    }, 0);
+  }
 
   const value = { user, session: user ? {} : null, loading, signUp, signIn, signOut };
 

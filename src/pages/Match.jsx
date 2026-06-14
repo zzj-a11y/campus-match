@@ -23,9 +23,9 @@ export default function Match() {
 
   useEffect(() => {
     let cancelled = false;
-    const slowTimer = setTimeout(() => { if (!cancelled) setSlowHint(true); }, 8000);
-    // 硬超时：15 秒后强制结束 loading
-    const hardTimer = setTimeout(() => { if (!cancelled) { setLoading(false); setSlowHint(false); } }, 15000);
+    const slowTimer = setTimeout(() => { if (!cancelled) setSlowHint(true); }, 5000);
+    // 硬超时：10 秒后强制结束 loading
+    const hardTimer = setTimeout(() => { if (!cancelled) { setLoading(false); setSlowHint(false); } }, 10000);
     (async () => {
       try {
         const u = await getCurrentUser();
@@ -53,9 +53,66 @@ export default function Match() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 gap-3">
-        <div className="w-6 h-6 border-2 border-accent-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-sm text-[#78716c]">{slowHint ? "服务器启动中..." : "加载中..."}</p>
+      <div className="max-w-[960px] mx-auto px-6 py-8">
+        <div className="flex gap-6 justify-center">
+          {/* 侧栏骨架 */}
+          <div className="hidden lg:block w-[200px] flex-shrink-0">
+            <div className="animate-pulse rounded-2xl border border-[#e7e5e4] bg-white p-5 h-40">
+              <div className="h-3 bg-stone-200 rounded w-20 mb-3" />
+              <div className="h-3 bg-stone-100 rounded w-full mb-2" />
+              <div className="h-3 bg-stone-100 rounded w-4/5 mb-2" />
+              <div className="h-3 bg-stone-100 rounded w-3/5" />
+            </div>
+          </div>
+
+          {/* 卡片骨架 */}
+          <div className="max-w-[480px] w-full">
+            <div className="flex items-center gap-4 mb-4 animate-pulse">
+              <div className="h-5 w-5 bg-stone-200 rounded" />
+              <div className="h-6 w-24 bg-stone-200 rounded" />
+              <div className="h-5 w-5 bg-stone-200 rounded ml-auto" />
+            </div>
+
+            {/* Tab 骨架 */}
+            <div className="flex border-b-2 border-[#e7e5e4] mb-4 animate-pulse">
+              <div className="h-8 w-20 bg-stone-100 rounded mr-4" />
+              <div className="h-8 w-24 bg-stone-100 rounded" />
+            </div>
+
+            {/* 卡片占位 */}
+            <div className="animate-pulse">
+              <div className="rounded-[20px] border border-[#e7e5e4] bg-white p-6 shadow-[0_8px_32px_rgba(28,25,23,0.06)] h-[380px] flex flex-col">
+                <div className="flex items-center gap-3">
+                  <div className="w-14 h-14 rounded-full bg-stone-200" />
+                  <div className="flex-1">
+                    <div className="h-5 w-28 bg-stone-200 rounded mb-2" />
+                    <div className="h-4 w-36 bg-stone-100 rounded" />
+                  </div>
+                </div>
+                <div className="mt-5 flex gap-2">
+                  <div className="h-7 w-16 bg-stone-100 rounded-lg" />
+                  <div className="h-7 w-12 bg-stone-100 rounded-lg" />
+                  <div className="h-7 w-20 bg-stone-100 rounded-lg" />
+                </div>
+                <div className="mt-auto pt-4 border-t border-[#e7e5e4]">
+                  <div className="h-4 w-20 bg-stone-100 rounded mb-2" />
+                  <div className="h-5 w-3/4 bg-stone-100 rounded mb-3" />
+                  <div className="h-5 w-16 bg-stone-100 rounded" />
+                </div>
+              </div>
+              <div className="flex items-center justify-center gap-6 mt-6">
+                <div className="w-14 h-14 rounded-full bg-stone-100" />
+                <div className="w-14 h-14 rounded-full bg-stone-100" />
+              </div>
+              <div className="flex justify-center mt-4">
+                <div className="h-4 w-28 bg-stone-100 rounded" />
+              </div>
+            </div>
+          </div>
+        </div>
+        {slowHint && (
+          <p className="text-center text-xs text-[#a8a29e] mt-4 animate-pulse">数据加载较慢，请耐心等待...</p>
+        )}
       </div>
     );
   }
