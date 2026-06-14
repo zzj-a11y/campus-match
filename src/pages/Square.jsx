@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { MagnifyingGlass, Plus, CaretDown, Fire, X, Megaphone, PushPin } from "@phosphor-icons/react";
+import { MagnifyingGlass, Plus, CaretDown, Fire, X, Megaphone, PushPin, Crown } from "@phosphor-icons/react";
 import { getRecruitments, addRecruitment, subscribeRecruitments, contactAuthor, deleteRecruitment, boostPost } from "../lib/dataStore";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -127,12 +127,12 @@ export default function Square() {
     }
   };
 
-  const handleBoost = async () => {
+  const handleBoost = async (level) => {
     if (!boostModalPost) return;
     setBoostConfirming(true);
     try {
-      await boostPost(boostModalPost.id);
-      toast.success("置顶成功");
+      await boostPost(boostModalPost.id, level);
+      toast.success(level === 'super' ? "已设置超级置顶" : "已设置标准置顶");
       setBoostModalPost(null);
       loadPosts(false);
     } catch (e) {
@@ -304,11 +304,17 @@ export default function Square() {
             }
 
             // 普通招募帖
+            const boostLevel = p.boosted ? (p.boost_level || 'standard') : null;
+            const cardClassName = boostLevel === 'super'
+              ? "rounded-2xl border border-[#e7e5e4] bg-gradient-to-b from-warm-50 to-white p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer ring-2 ring-warm-400 shadow-[0_0_24px_rgba(249,115,22,0.2)]"
+              : boostLevel === 'standard'
+                ? "rounded-2xl border border-warm-400 bg-warm-50/30 p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.12)]"
+                : "rounded-2xl border border-[#e7e5e4] bg-white p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer";
             return (
               <div
                 key={p.id}
                 onClick={() => handleCardClick(p)}
-                className="rounded-2xl border border-[#e7e5e4] bg-white p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer"
+                className={cardClassName}
               >
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="font-semibold text-[#1c1917] leading-snug group-hover:text-accent-700 transition-colors">
@@ -326,7 +332,13 @@ export default function Square() {
                         急
                       </span>
                     )}
-                    {p.boosted && (
+                    {p.boosted && p.boost_level === 'super' && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 text-xs font-semibold text-white bg-warm-500 rounded-full">
+                        <Crown size={14} weight="fill" />
+                        超级置顶
+                      </span>
+                    )}
+                    {p.boosted && p.boost_level !== 'super' && (
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-warm-600 bg-warm-100 rounded-full">
                         <PushPin size={14} weight="fill" className="text-warm-600" />
                         置顶
@@ -381,7 +393,7 @@ export default function Square() {
         </div>
       )}
 
-      {/* 置顶确认弹窗 */}
+      {/* 置顶选择弹窗 - 标准/超级双等级 */}
       {boostModalPost && (
         <div
           className="fixed inset-0 z-[110] bg-black/50 flex items-center justify-center p-6"
@@ -389,9 +401,9 @@ export default function Square() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="bg-white rounded-[20px] p-6 max-w-[400px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
+            className="bg-white rounded-[20px] p-6 max-w-[480px] w-full shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
           >
-            <div className="flex items-center justify-between mb-5">
+            <div className="flex items-center justify-between mb-2">
               <h2 className="font-display text-xl font-bold text-[#1c1917]">置顶帖子</h2>
               <button
                 onClick={() => setBoostModalPost(null)}
@@ -400,23 +412,55 @@ export default function Square() {
                 <X size={18} />
               </button>
             </div>
-            <p className="text-sm text-[#78716c] mb-6">帖子将固定在广场顶部 3 天</p>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setBoostModalPost(null)}
-                disabled={boostConfirming}
-                className="flex-1 py-3 text-sm font-medium text-[#78716c] rounded-full border border-[#e7e5e4] hover:text-[#1c1917] hover:border-[#a8a29e] disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
-              >
-                取消
-              </button>
-              <button
-                onClick={handleBoost}
-                disabled={boostConfirming}
-                className="flex-1 py-3 text-sm font-semibold text-white bg-accent-600 rounded-full hover:bg-accent-700 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
-              >
-                {boostConfirming ? "置顶中..." : "确认置顶"}
-              </button>
+            <p className="text-sm text-[#78716c] mb-5">帖子将固定在广场顶部 3 天</p>
+
+            <div className="grid grid-cols-2 gap-3 mb-5">
+              {/* 标准置顶 */}
+              <div className="bg-white border border-warm-200 rounded-xl p-4 flex flex-col">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-warm-100 flex items-center justify-center flex-shrink-0">
+                    <PushPin size={18} weight="fill" className="text-warm-600" />
+                  </div>
+                  <span className="font-semibold text-sm text-[#1c1917]">标准置顶</span>
+                </div>
+                <p className="text-xs text-[#78716c] mb-1">金色边框 + 微微暖色阴影</p>
+                <p className="text-xs text-[#a8a29e] mb-4">会员免费 / 非会员 1元/次</p>
+                <button
+                  onClick={() => handleBoost('standard')}
+                  disabled={boostConfirming}
+                  className="mt-auto w-full py-2.5 text-sm font-medium text-warm-600 border border-warm-500 rounded-full hover:bg-warm-50 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
+                >
+                  {boostConfirming ? "处理中..." : "选择标准置顶"}
+                </button>
+              </div>
+
+              {/* 超级置顶 */}
+              <div className="bg-gradient-to-b from-warm-50 to-white border border-warm-300 rounded-xl p-4 flex flex-col relative">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 rounded-full bg-warm-500 flex items-center justify-center flex-shrink-0">
+                    <Crown size={18} weight="fill" className="text-white" />
+                  </div>
+                  <span className="font-semibold text-sm text-[#1c1917]">超级置顶</span>
+                </div>
+                <p className="text-xs text-[#78716c] mb-1">琥珀色发光光晕 + 独占一行</p>
+                <p className="text-xs text-[#a8a29e] mb-4">全年会员免费 / 非会员 2元/次</p>
+                <button
+                  onClick={() => handleBoost('super')}
+                  disabled={boostConfirming}
+                  className="mt-auto w-full py-2.5 text-sm font-semibold text-white bg-warm-500 rounded-full hover:bg-warm-600 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
+                >
+                  {boostConfirming ? "处理中..." : "选择超级置顶"}
+                </button>
+              </div>
             </div>
+
+            <button
+              onClick={() => setBoostModalPost(null)}
+              disabled={boostConfirming}
+              className="w-full py-3 text-sm font-medium text-[#78716c] rounded-full border border-[#e7e5e4] hover:text-[#1c1917] hover:border-[#a8a29e] disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.98] transition-all"
+            >
+              取消
+            </button>
           </div>
         </div>
       )}

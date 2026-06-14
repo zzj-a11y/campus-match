@@ -703,7 +703,7 @@ function timeAgo(timestamp) {
 }
 
 export async function getRecruitments(filters = {}) {
-  let query = supabase.from("recruitments").select("id, title, skills, college, author_id, urgent, created_at, boosted, boosted_until");
+  let query = supabase.from("recruitments").select("id, title, skills, college, author_id, urgent, created_at, boosted, boosted_until, boost_level");
 
   if (filters.college && filters.college !== "全部学院") {
     query = query.eq("college", filters.college);
@@ -727,6 +727,7 @@ export async function getRecruitments(filters = {}) {
       urgent: r.urgent || false,
       boosted: isBoosted,
       boosted_until: r.boosted_until || null,
+      boost_level: r.boost_level || 'standard',
     };
   });
 
@@ -780,10 +781,14 @@ export async function deleteRecruitment(postId) {
 
 // ---- 帖子置顶 ----
 
-export async function boostPost(postId) {
+export async function boostPost(postId, level = 'standard') {
   const { error } = await supabase
     .from("recruitments")
-    .update({ boosted: true, boosted_until: new Date(Date.now() + 3*24*60*60*1000).toISOString() })
+    .update({
+      boosted: true,
+      boost_level: level,
+      boosted_until: new Date(Date.now() + 3*24*60*60*1000).toISOString()
+    })
     .eq("id", postId);
   if (error) throw error;
 }
