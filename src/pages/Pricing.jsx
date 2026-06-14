@@ -22,8 +22,8 @@ export default function Pricing() {
       } else {
         toast.success("已激活会员，畅享全部功能！");
       }
-      // 刷新页面让 AuthContext 重新 loadProfile 拿到最新 tier
-      window.location.href = "/#/pricing";
+      // 强制全页面重载，让 AuthContext 重新加载最新 profile
+      window.location.reload();
     } catch (e) {
       toast.error(e.message || "升级失败，请重试");
     }

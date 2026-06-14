@@ -113,21 +113,11 @@ export default function Nav() {
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 text-sm text-[#78716c]">
                 <Avatar user={user} size={28} />
-                <Link to="/profile" className="hidden sm:inline text-[#1c1917] font-medium no-underline hover:text-accent-600 transition-colors">
+                <Link to="/profile" className={`hidden sm:inline font-medium no-underline hover:text-accent-600 transition-colors ${user.subscription_tier === "yearly" || user.subscription_tier === "semester" ? "text-warm-600" : "text-[#1c1917]"}`}>
+                  {user.subscription_tier === "yearly" && <Crown size={14} weight="fill" className="inline mr-1 -mt-0.5" />}
+                  {user.subscription_tier === "semester" && <Star size={14} weight="fill" className="inline mr-1 -mt-0.5" />}
                   {user.name || user.email?.split("@")[0]}
                 </Link>
-                {user.subscription_tier === "yearly" && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold text-warm-600 bg-warm-100 rounded-full whitespace-nowrap">
-                    <Crown size={12} weight="fill" />
-                    年费会员
-                  </span>
-                )}
-                {user.subscription_tier === "semester" && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold text-warm-600 bg-warm-100 rounded-full whitespace-nowrap">
-                    <Star size={12} weight="fill" />
-                    学期会员
-                  </span>
-                )}
               </div>
               <button
                 onClick={handleSignOut}
