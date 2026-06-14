@@ -716,7 +716,7 @@ export async function getRecruitments(filters = {}) {
 
   let result = list.map((r) => {
     // 检查置顶是否过期
-    const isBoosted = r.boosted && r.boosted_until && r.boosted_until > nowISO;
+    const isBoosted = r.boosted && r.boosted_until && new Date(r.boosted_until) > new Date();
     return {
       id: r.id,
       title: r.title,
