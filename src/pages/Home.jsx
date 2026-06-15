@@ -213,7 +213,7 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
           {stats.map((s) => (
             <div key={s.label} className="text-left sm:text-left">
-              <div className="font-display text-3xl sm:text-4xl font-extrabold text-[#0d9488]">
+              <div className="font-display text-3xl sm:text-4xl font-extrabold text-accent-600">
                 {s.value}
               </div>
               <div className="mt-1 text-sm text-[#78716c]">{s.label}</div>

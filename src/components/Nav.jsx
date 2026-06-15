@@ -36,7 +36,7 @@ export default function Nav() {
       <div className="max-w-[1280px] mx-auto h-full px-6 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <Link to="/" className="flex items-center gap-2.5 no-underline">
-            <span className="font-display text-xl font-extrabold text-[#0d9488] tracking-tight">
+            <span className="font-display text-xl font-extrabold text-accent-600 tracking-tight">
               校园智搭
             </span>
             <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-white bg-accent-600 rounded-lg card-hover whitespace-nowrap">
@@ -51,7 +51,7 @@ export default function Nav() {
             to="/"
             className={`text-sm font-medium no-underline transition-colors ${
               location.pathname === "/"
-                ? "text-[#0d9488]"
+                ? "text-accent-600"
                 : "text-[#78716c] hover:text-[#1c1917]"
             }`}
           >
@@ -61,7 +61,7 @@ export default function Nav() {
             to="/square"
             className={`text-sm font-medium no-underline transition-colors ${
               location.pathname === "/square"
-                ? "text-[#0d9488]"
+                ? "text-accent-600"
                 : "text-[#78716c] hover:text-[#1c1917]"
             }`}
           >
@@ -71,7 +71,7 @@ export default function Nav() {
             to="/ads"
             className={`text-sm font-medium no-underline transition-colors ${
               location.pathname === "/ads"
-                ? "text-[#0d9488]"
+                ? "text-accent-600"
                 : "text-[#78716c] hover:text-[#1c1917]"
             }`}
           >
@@ -81,7 +81,7 @@ export default function Nav() {
             to="/pricing"
             className={`text-sm font-medium no-underline transition-colors ${
               location.pathname === "/pricing"
-                ? "text-[#0d9488]"
+                ? "text-accent-600"
                 : "text-[#78716c] hover:text-[#1c1917]"
             }`}
           >
@@ -91,7 +91,7 @@ export default function Nav() {
             to="/match"
             className={`text-sm font-medium no-underline transition-colors ${
               location.pathname === "/match"
-                ? "text-[#0d9488]"
+                ? "text-accent-600"
                 : "text-[#78716c] hover:text-[#1c1917]"
             }`}
           >
@@ -103,7 +103,7 @@ export default function Nav() {
               to="/messages"
               className={`text-sm font-medium no-underline transition-colors inline-flex items-center gap-1.5 ${
                 location.pathname === "/messages" || location.pathname.startsWith("/chat")
-                  ? "text-[#0d9488]"
+                  ? "text-accent-600"
                   : "text-[#78716c] hover:text-[#1c1917]"
               }`}
             >
