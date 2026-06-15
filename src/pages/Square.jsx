@@ -4,6 +4,7 @@ import { MagnifyingGlass, Plus, CaretDown, Fire, X, Megaphone, PushPin, Crown } 
 import { getRecruitments, addRecruitment, subscribeRecruitments, contactAuthor, deleteRecruitment, boostPost } from "../lib/dataStore";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import toast from "../lib/toast";
 import ADS from "../data/ads";
 
@@ -39,6 +40,8 @@ const skillFilters = [
 
 export default function Square() {
   const { user } = useAuth();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
   const navigate = useNavigate();
   const [collegeFilter, setCollegeFilter] = useState("全部学院");
   const [skillFilter, setSkillFilter] = useState("全部技能");
@@ -326,10 +329,10 @@ export default function Square() {
             // 普通招募帖
             const boostLevel = p.boosted ? (p.boost_level || 'standard') : null;
             const cardClassName = boostLevel === 'super'
-              ? "rounded-2xl border border-[#e7e5e4] dark:border-slate-700/50 bg-gradient-to-b from-warm-50 to-white dark:bg-slate-900/80 dark:backdrop-blur-sm relative p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer ring-2 ring-warm-400 dark:ring-0 shadow-[0_0_24px_rgba(249,115,22,0.2)] dark:shadow-none"
+              ? `rounded-2xl border relative p-5 transition-all group cursor-pointer ${isDark ? 'border-slate-700/50 bg-slate-900/80 backdrop-blur-sm ring-0 shadow-none' : 'border-[#e7e5e4] bg-gradient-to-b from-warm-50 to-white ring-2 ring-warm-400 shadow-[0_0_24px_rgba(249,115,22,0.2)]'} hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)]`
               : boostLevel === 'standard'
-                ? "rounded-2xl border border-warm-400 dark:border-warm-500/50 bg-warm-50/30 dark:bg-warm-950/40 p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.12)] dark:shadow-[0_0_12px_rgba(249,115,22,0.15)]"
-                : "rounded-2xl border border-[#e7e5e4] dark:border-slate-700 bg-white dark:bg-slate-800 p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer";
+                ? `rounded-2xl border p-5 transition-all group cursor-pointer hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] ${isDark ? 'border-warm-500/50 bg-warm-950/40 shadow-[0_0_12px_rgba(249,115,22,0.15)]' : 'border-warm-400 bg-warm-50/30 shadow-[0_4px_16px_rgba(249,115,22,0.12)]'}`
+                : `rounded-2xl border p-5 transition-all group cursor-pointer hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] ${isDark ? 'border-slate-700 bg-slate-800' : 'border-[#e7e5e4] bg-white'}`;
             return (
               <div
                 key={p.id}
@@ -337,16 +340,16 @@ export default function Square() {
                 className={cardClassName}
               >
                 {/* 暗色模式：顶部琥珀金线 */}
-                {boostLevel === 'super' && (
-                  <div className="hidden dark:block absolute top-0 left-4 right-4 h-[2px] bg-gradient-to-r from-amber-400/0 via-amber-400/60 to-amber-400/0 rounded-full" />
+                {boostLevel === 'super' && isDark && (
+                  <div className="absolute top-0 left-4 right-4 h-[2px] bg-gradient-to-r from-amber-400/0 via-amber-400/60 to-amber-400/0 rounded-full" />
                 )}
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold text-[#1c1917] dark:text-slate-100 leading-snug group-hover:text-accent-700 transition-colors">
+                  <h3 className={`font-semibold leading-snug group-hover:text-accent-700 transition-colors ${isDark ? 'text-slate-100' : 'text-[#1c1917]'}`}>
                     {p.title}
                   </h3>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     {p.time === "刚刚" && (
-                      <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-accent-600 dark:text-accent-400 bg-accent-100 dark:bg-accent-900/40 rounded-full">
+                      <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-full ${isDark ? 'text-accent-400 bg-accent-900/40' : 'text-accent-600 bg-accent-100'}`}>
                         新
                       </span>
                     )}
@@ -380,7 +383,7 @@ export default function Square() {
                     </span>
                   ))}
                 </div>
-                <div className="mt-3 flex items-center justify-between text-xs text-[#78716c] dark:text-slate-400">
+                <div className={`mt-3 flex items-center justify-between text-xs ${isDark ? 'text-slate-400' : 'text-[#78716c]'}`}>
                   <span>{p.college}</span>
                   <div className="flex items-center gap-2">
                     <span>{p.time}</span>
@@ -390,7 +393,7 @@ export default function Square() {
                           e.stopPropagation();
                           setBoostModalPost(p);
                         }}
-                        className="text-xs font-medium text-[#78716c] dark:text-slate-400 border border-[#e7e5e4] dark:border-slate-600 rounded-full px-2.5 py-0.5 hover:text-[#1c1917] dark:hover:text-slate-200 hover:border-[#a8a29e] dark:hover:border-slate-500 active:scale-[0.98] transition-all"
+                        className={`text-xs font-medium border rounded-full px-2.5 py-0.5 active:scale-[0.98] transition-all ${isDark ? 'text-slate-400 border-slate-600 hover:text-slate-200 hover:border-slate-500' : 'text-[#78716c] border-[#e7e5e4] hover:text-[#1c1917] hover:border-[#a8a29e]'}`}
                       >
                         置顶
                       </button>
