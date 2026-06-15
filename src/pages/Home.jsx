@@ -210,17 +210,15 @@ export default function Home() {
 
       {/* ---- Stats ---- */}
       <section className="max-w-[1280px] mx-auto px-6 py-16">
-        <div className="bg-white/65 backdrop-blur-sm rounded-2xl border border-white/50 shadow-[0_4px_24px_rgba(28,25,23,0.04)] p-8 sm:p-10">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-            {stats.map((s) => (
-              <div key={s.label} className="text-left sm:text-left">
-                <div className="font-display text-3xl sm:text-4xl font-extrabold text-[#0f766e]">
-                  {s.value}
-                </div>
-                <div className="mt-1 text-sm text-[#78716c]">{s.label}</div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
+          {stats.map((s) => (
+            <div key={s.label} className="bg-white/65 backdrop-blur-sm rounded-2xl border border-white/50 shadow-[0_4px_24px_rgba(28,25,23,0.04)] p-6 text-left">
+              <div className="font-display text-3xl sm:text-4xl font-extrabold text-[#0f766e]">
+                {s.value}
               </div>
-            ))}
-          </div>
+              <div className="mt-1 text-sm text-[#78716c]">{s.label}</div>
+            </div>
+          ))}
         </div>
       </section>
 
