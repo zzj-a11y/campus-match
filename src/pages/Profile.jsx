@@ -3,7 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import { User, PencilSimple, FloppyDisk, X, Plus, Camera, Eye } from "@phosphor-icons/react";
 import { useAuth } from "../context/AuthContext";
 import { updateProfile, getProfileVisits } from "../lib/dataStore";
-import { uploadAvatar } from "../lib/storage";
 import Avatar from "../components/Avatar";
 import toast from "../lib/toast";
 
@@ -239,11 +238,23 @@ export default function Profile() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    // 限制文件大小 500KB（base64 会膨胀约 1.3x）
+    if (file.size > 500 * 1024) {
+      toast.error("图片过大，请选择 500KB 以内的图片");
+      return;
+    }
+
     setAvatarUploading(true);
     try {
-      const url = await uploadAvatar(file, user.id);
-      await updateProfile({ avatar_url: url });
-      setAvatarUrl(url);
+      // 用 FileReader 转 base64，绕过 Supabase Storage RLS
+      const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error("读取图片失败"));
+        reader.readAsDataURL(file);
+      });
+      await updateProfile({ avatar_url: dataUrl });
+      setAvatarUrl(dataUrl);
       toast.success("头像已更新");
     } catch (err) {
       toast.error(err?.message || "头像上传失败");
