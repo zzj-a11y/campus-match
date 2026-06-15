@@ -117,7 +117,7 @@ export default function Home() {
                   你们都有 Python 标签，同学院优先推荐
                 </div>
               </div>
-              <div className="mt-4 text-xs text-accent-600 font-semibold">
+              <div className="mt-4 text-xs text-[#0f766e] font-semibold">
                 87% 匹配度
               </div>
             </div>
@@ -131,7 +131,7 @@ export default function Home() {
           {/* 大卡片：智能匹配 */}
           <Link to="/register" className="card-hover group block rounded-2xl border border-accent-200 bg-gradient-to-br from-accent-50 to-white p-8 no-underline md:row-span-2 flex flex-col justify-between">
             <div>
-              <div className="w-12 h-12 rounded-xl bg-accent-100 flex items-center justify-center text-accent-600">
+              <div className="w-12 h-12 rounded-xl bg-accent-100 flex items-center justify-center text-[#0f766e]">
                 <Users size={26} weight="duotone" />
               </div>
               <h3 className="mt-5 font-display text-2xl font-bold text-[#1c1917]">智能匹配</h3>
@@ -153,7 +153,7 @@ export default function Home() {
 
           {/* 小卡片 2：任务看板 */}
           <Link to="/match" className="card-hover group block rounded-2xl border border-[#e7e5e4] bg-white p-6 no-underline">
-            <div className="w-10 h-10 rounded-xl bg-accent-100 flex items-center justify-center text-accent-600">
+            <div className="w-10 h-10 rounded-xl bg-accent-100 flex items-center justify-center text-[#0f766e]">
               <Kanban size={22} weight="duotone" />
             </div>
             <h3 className="mt-4 font-display text-lg font-bold text-[#1c1917]">任务看板</h3>
@@ -213,7 +213,7 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
           {stats.map((s) => (
             <div key={s.label} className="text-left sm:text-left">
-              <div className="font-display text-3xl sm:text-4xl font-extrabold text-accent-600">
+              <div className="font-display text-3xl sm:text-4xl font-extrabold text-[#0f766e]">
                 {s.value}
               </div>
               <div className="mt-1 text-sm text-[#78716c]">{s.label}</div>
