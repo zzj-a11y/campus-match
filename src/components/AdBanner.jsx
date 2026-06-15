@@ -57,8 +57,6 @@ export default function AdBanner() {
           </div>
         </div>
 
-        {/* 右侧留白（以后放图片） */}
-        <div className="hidden md:block w-48 h-32 rounded-xl bg-accent-100/50 flex-shrink-0" />
       </div>
 
       {/* 底部圆点指示器 */}
