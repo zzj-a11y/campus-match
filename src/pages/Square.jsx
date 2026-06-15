@@ -326,10 +326,10 @@ export default function Square() {
             // 普通招募帖
             const boostLevel = p.boosted ? (p.boost_level || 'standard') : null;
             const cardClassName = boostLevel === 'super'
-              ? "rounded-2xl border border-[#e7e5e4] bg-gradient-to-b from-warm-50 to-white p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer ring-2 ring-warm-400 shadow-[0_0_24px_rgba(249,115,22,0.2)]"
+              ? "rounded-2xl border border-[#e7e5e4] dark:border-warm-500/50 bg-gradient-to-b from-warm-50 to-white dark:from-warm-950 dark:to-slate-800 p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer ring-2 ring-warm-400 dark:ring-warm-500/60 shadow-[0_0_24px_rgba(249,115,22,0.2)] dark:shadow-[0_0_32px_rgba(249,115,22,0.35)]"
               : boostLevel === 'standard'
-                ? "rounded-2xl border border-warm-400 bg-warm-50/30 p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.12)]"
-                : "rounded-2xl border border-[#e7e5e4] bg-white p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer";
+                ? "rounded-2xl border border-warm-400 dark:border-warm-500/50 bg-warm-50/30 dark:bg-warm-950/40 p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.12)] dark:shadow-[0_0_20px_rgba(249,115,22,0.25)]"
+                : "rounded-2xl border border-[#e7e5e4] dark:border-slate-700 bg-white dark:bg-slate-800 p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer";
             return (
               <div
                 key={p.id}
@@ -337,12 +337,12 @@ export default function Square() {
                 className={cardClassName}
               >
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-semibold text-[#1c1917] leading-snug group-hover:text-accent-700 transition-colors">
+                  <h3 className="font-semibold text-[#1c1917] dark:text-slate-100 leading-snug group-hover:text-accent-700 transition-colors">
                     {p.title}
                   </h3>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     {p.time === "刚刚" && (
-                      <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-accent-600 bg-accent-100 rounded-full">
+                      <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium text-accent-600 dark:text-accent-400 bg-accent-100 dark:bg-accent-900/40 rounded-full">
                         新
                       </span>
                     )}
@@ -376,7 +376,7 @@ export default function Square() {
                     </span>
                   ))}
                 </div>
-                <div className="mt-3 flex items-center justify-between text-xs text-[#78716c]">
+                <div className="mt-3 flex items-center justify-between text-xs text-[#78716c] dark:text-slate-400">
                   <span>{p.college}</span>
                   <div className="flex items-center gap-2">
                     <span>{p.time}</span>
@@ -386,7 +386,7 @@ export default function Square() {
                           e.stopPropagation();
                           setBoostModalPost(p);
                         }}
-                        className="text-xs font-medium text-[#78716c] border border-[#e7e5e4] rounded-full px-2.5 py-0.5 hover:text-[#1c1917] hover:border-[#a8a29e] active:scale-[0.98] transition-all"
+                        className="text-xs font-medium text-[#78716c] dark:text-slate-400 border border-[#e7e5e4] dark:border-slate-600 rounded-full px-2.5 py-0.5 hover:text-[#1c1917] dark:hover:text-slate-200 hover:border-[#a8a29e] dark:hover:border-slate-500 active:scale-[0.98] transition-all"
                       >
                         置顶
                       </button>
