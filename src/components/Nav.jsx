@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { SignOut, ChatCenteredDots, Crown, Star } from "@phosphor-icons/react";
+import { SignOut, ChatCenteredDots, Crown, Star, Sun, Moon } from "@phosphor-icons/react";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { getUserMatches } from "../lib/dataStore";
 import Avatar from "../components/Avatar";
 
@@ -9,6 +10,7 @@ export default function Nav() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const { theme, toggle } = useTheme();
   const [matchCount, setMatchCount] = useState(0);
 
   useEffect(() => {
@@ -29,7 +31,7 @@ export default function Nav() {
   };
 
   return (
-    <nav className="sticky top-0 z-50 h-16 border-b border-[#e7e5e4] bg-[#fafaf9]/95 backdrop-blur-sm">
+    <nav className="sticky top-0 z-50 h-16 border-b border-[#e7e5e4] dark:border-slate-700 bg-[#fafaf9]/95 dark:bg-slate-900/95 backdrop-blur-sm">
       <div className="max-w-[1280px] mx-auto h-full px-6 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2.5 no-underline">
           <span className="font-display text-xl font-extrabold text-[#0d9488] tracking-tight">
@@ -38,6 +40,13 @@ export default function Nav() {
           <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-white bg-accent-600 rounded-lg card-hover whitespace-nowrap">
             GPNU · 校园组队
           </span>
+          <button
+            onClick={toggle}
+            className="inline-flex items-center px-2 py-1 text-[11px] font-medium rounded-lg transition-colors hover:bg-[#e7e5e4]/50 dark:hover:bg-slate-700/50"
+            title={theme === "light" ? "切换到暗色模式" : "切换到浅色模式"}
+          >
+            {theme === "light" ? <Moon size={14} /> : <Sun size={14} />}
+          </button>
         </Link>
 
         <div className="flex items-center gap-6">
