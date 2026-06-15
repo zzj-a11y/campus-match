@@ -167,7 +167,7 @@ export default function Home() {
         <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#1c1917]">
           三步找到你的队友
         </h2>
-        <div className="mt-8 flex gap-6 overflow-x-auto no-scrollbar snap-x-mandatory pb-2">
+        <div className="mt-8 flex gap-6 overflow-x-auto no-scrollbar snap-x-mandatory pb-2 lg:justify-center">
           {steps.map((s) => (
             <div
               key={s.step}
