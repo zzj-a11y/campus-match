@@ -1,10 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Circle, Megaphone } from '@phosphor-icons/react';
+import { useTheme } from '../context/ThemeContext';
 import ADS from '../data/ads';
 
 const BANNER_ADS = ADS.slice(0, 3);
 
 export default function AdBanner() {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -20,11 +23,11 @@ export default function AdBanner() {
 
   return (
     <div
-      className="relative overflow-hidden rounded-2xl border border-[#e7e5e4] bg-white mb-8"
+      className={`relative overflow-hidden rounded-2xl border mb-8 ${isDark ? 'border-slate-700 bg-slate-800' : 'border-[#e7e5e4] bg-white'}`}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="bg-gradient-to-r from-accent-50 to-white px-8 py-10 flex items-center gap-8 min-h-[200px]">
+      <div className={`px-8 py-10 flex items-center gap-8 min-h-[200px] ${isDark ? 'bg-gradient-to-r from-slate-800 to-slate-700' : 'bg-gradient-to-r from-accent-50 to-white'}`}>
         {/* 左侧文字 */}
         <div className="flex-1 space-y-3">
           <div className="flex items-center gap-2">
@@ -33,17 +36,17 @@ export default function AdBanner() {
             </span>
             <span className="text-xs text-[#a8a29e]">{BANNER_ADS[currentSlide].category}</span>
           </div>
-          <h3 className="font-display text-xl font-bold text-[#1c1917]">
+          <h3 className={`font-display text-xl font-bold ${isDark ? 'text-slate-100' : 'text-[#1c1917]'}`}>
             {BANNER_ADS[currentSlide].brand} · {BANNER_ADS[currentSlide].title}
           </h3>
           <div className="flex flex-wrap gap-1.5">
             {BANNER_ADS[currentSlide].tags.map((t) => (
-              <span key={t} className="px-2 py-0.5 text-[11px] font-medium bg-stone-100 text-[#78716c] rounded-md">
+              <span key={t} className={`px-2 py-0.5 text-[11px] font-medium rounded-md ${isDark ? 'bg-slate-700 text-slate-300' : 'bg-stone-100 text-[#78716c]'}`}>
                 {t}
               </span>
             ))}
           </div>
-          <p className="text-sm text-[#78716c] italic">
+          <p className={`text-sm italic ${isDark ? 'text-slate-400' : 'text-[#78716c]'}`}>
             &ldquo;{BANNER_ADS[currentSlide].review}&rdquo; - {BANNER_ADS[currentSlide].reviewer}
           </p>
           <div className="flex items-center gap-4 pt-2">
