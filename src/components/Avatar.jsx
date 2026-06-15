@@ -18,13 +18,14 @@ function hashName(name) {
 }
 
 export default function Avatar({ user, size = 40 }) {
+  const [imgFailed, setImgFailed] = useState(false);
+
   if (!user) return null;
 
   const avatarUrl = user?.avatar_url || null;
   const displayName = user?.name || user?.college || user?.email?.split("@")[0] || "";
   const initial = (user?.avatar || displayName[0] || "?")[0];
   const colorClass = PALETTE[hashName(displayName) % PALETTE.length];
-  const [imgFailed, setImgFailed] = useState(false);
 
   if (avatarUrl && !imgFailed) {
     return (
