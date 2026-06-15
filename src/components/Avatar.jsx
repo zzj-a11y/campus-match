@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 const PALETTE = [
   "bg-accent-100 text-accent-700",
   "bg-warm-100 text-warm-600",
