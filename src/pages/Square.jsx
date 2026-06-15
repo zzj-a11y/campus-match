@@ -326,7 +326,7 @@ export default function Square() {
             // 普通招募帖
             const boostLevel = p.boosted ? (p.boost_level || 'standard') : null;
             const cardClassName = boostLevel === 'super'
-              ? "rounded-2xl border border-[#e7e5e4] dark:border-warm-500/30 bg-gradient-to-b from-warm-50 to-white dark:from-warm-950 dark:to-slate-800 p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer ring-2 ring-warm-400 dark:ring-warm-500/30 shadow-[0_0_24px_rgba(249,115,22,0.2)] dark:shadow-[0_0_16px_rgba(249,115,22,0.18)]"
+              ? "rounded-2xl border border-[#e7e5e4] dark:border-slate-700/50 bg-gradient-to-b from-warm-50 to-white dark:bg-slate-900/80 dark:backdrop-blur-sm relative p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer ring-2 ring-warm-400 dark:ring-0 shadow-[0_0_24px_rgba(249,115,22,0.2)] dark:shadow-none"
               : boostLevel === 'standard'
                 ? "rounded-2xl border border-warm-400 dark:border-warm-500/50 bg-warm-50/30 dark:bg-warm-950/40 p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer shadow-[0_4px_16px_rgba(249,115,22,0.12)] dark:shadow-[0_0_12px_rgba(249,115,22,0.15)]"
                 : "rounded-2xl border border-[#e7e5e4] dark:border-slate-700 bg-white dark:bg-slate-800 p-5 hover:shadow-[0_4px_16px_rgba(28,25,23,0.08)] transition-all group cursor-pointer";
@@ -336,6 +336,10 @@ export default function Square() {
                 onClick={() => handleCardClick(p)}
                 className={cardClassName}
               >
+                {/* 暗色模式：顶部琥珀金线 */}
+                {boostLevel === 'super' && (
+                  <div className="hidden dark:block absolute top-0 left-4 right-4 h-[2px] bg-gradient-to-r from-amber-400/0 via-amber-400/60 to-amber-400/0 rounded-full" />
+                )}
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="font-semibold text-[#1c1917] dark:text-slate-100 leading-snug group-hover:text-accent-700 transition-colors">
                     {p.title}
