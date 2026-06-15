@@ -24,12 +24,14 @@ export default function Avatar({ user, size = 40 }) {
   const displayName = user?.name || user?.college || user?.email?.split("@")[0] || "";
   const initial = (user?.avatar || displayName[0] || "?")[0];
   const colorClass = PALETTE[hashName(displayName) % PALETTE.length];
+  const [imgFailed, setImgFailed] = useState(false);
 
-  if (avatarUrl) {
+  if (avatarUrl && !imgFailed) {
     return (
       <img
         src={avatarUrl}
         alt={displayName}
+        onError={() => setImgFailed(true)}
         className="rounded-full object-cover flex-shrink-0"
         style={{ width: size, height: size, minWidth: size, minHeight: size }}
       />

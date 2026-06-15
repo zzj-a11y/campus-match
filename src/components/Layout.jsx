@@ -12,7 +12,7 @@ export default function Layout() {
       {/* 动态背景 */}
       {theme === "dark" ? (
         <MeshGradient
-          className="fixed inset-0 w-full h-full z-0"
+          className="fixed inset-0 w-full h-full z-0 pointer-events-none"
           colors={["#0f172a", "#0d9488", "#115e59", "#f97316", "#0f172a"]}
           speed={0.3}
           backgroundColor="#0f172a"

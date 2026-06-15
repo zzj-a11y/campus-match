@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export default function ThemeToggle({ checked = false, onChange }) {
+export default function ThemeToggle({ checked = false, onChange = () => {} }) {
   const [isPressed, setIsPressed] = useState(false);
 
   return (

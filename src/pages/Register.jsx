@@ -369,17 +369,20 @@ export default function Register() {
                 >
                   {s}
                   {customSkills.includes(s) && (
-                    <button
+                    <span
+                      role="button"
+                      tabIndex={0}
                       onClick={(e) => {
                         e.stopPropagation();
                         setCustomSkills(customSkills.filter((x) => x !== s));
                         setSkills(skills.filter((x) => x !== s));
                       }}
-                      className="ml-1.5 inline-flex items-center text-accent-500 hover:text-red-500"
+                      onKeyDown={(e) => { if (e.key === "Enter") e.stopPropagation(); }}
+                      className="ml-1.5 inline-flex items-center text-accent-500 hover:text-red-500 cursor-pointer"
                       title="删除自定义标签"
                     >
                       <X size={12} weight="bold" />
-                    </button>
+                    </span>
                   )}
                 </button>
               );
