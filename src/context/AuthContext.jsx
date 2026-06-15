@@ -17,7 +17,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        loadProfile(session.user);
+        loadProfile(session.user).catch(() => setLoading(false));
       } else {
         setLoading(false);
       }
@@ -26,7 +26,7 @@ export function AuthProvider({ children }) {
     // 监听 auth 状态变化
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        loadProfile(session.user);
+        loadProfile(session.user).catch(() => {});
       } else {
         setUser(null);
       }

@@ -58,6 +58,7 @@ export default function Square() {
   const [createSubmitting, setCreateSubmitting] = useState(false);
   const [boostModalPost, setBoostModalPost] = useState(null);
   const [boostConfirming, setBoostConfirming] = useState(false);
+  const [contacting, setContacting] = useState(null);
 
   // 加载招募帖（竞态保护 + 刷新回调）
   const loadPosts = async (showLoading = true) => {
@@ -143,6 +144,31 @@ export default function Square() {
     }
   };
 
+  const handlePublishThenBoost = async () => {
+    if (!createTitle.trim() || createSkills.length === 0) return;
+    setCreateSubmitting(true);
+    try {
+      const newPost = await addRecruitment({
+        title: createTitle.trim(),
+        skills: createSkills,
+        college: createCollege || (user?.college) || "计算机科学学院",
+      });
+      toast.success("招募已发布，现在设置置顶");
+      setPosts((prev) => [newPost, ...prev]);
+      setShowCreate(false);
+      setCreateTitle("");
+      setCreateSkills([]);
+      setCreateSkillInput("");
+      setCreateCollege("");
+      setBoostModalPost(newPost);
+    } catch (e) {
+      toast.error(e?.message || "发布失败，请重试");
+      console.error("handlePublishThenBoost failed:", e);
+    } finally {
+      setCreateSubmitting(false);
+    }
+  };
+
   const handleBoost = async (level) => {
     if (!boostModalPost) return;
     setBoostConfirming(true);
@@ -171,11 +197,14 @@ export default function Square() {
       return;
     }
     if (post.authorId === user.id) return; // 不联系自己
+    if (contacting) return; // 防重复点击
+    setContacting(post.id);
     try {
       const matchId = await contactAuthor(post.authorId);
       navigate(`/chat/${matchId}`);
     } catch (e) {
       console.error("联系失败:", e);
+      setContacting(null);
     }
   };
 
@@ -577,6 +606,17 @@ export default function Square() {
                   ))}
                 </select>
               </div>
+            </div>
+
+            <div className="mt-4 flex items-center justify-center gap-1.5 text-sm">
+              <span className="text-[#a8a29e]">想要更多曝光？</span>
+              <button
+                onClick={handlePublishThenBoost}
+                disabled={!createTitle.trim() || createSkills.length === 0 || createSubmitting}
+                className="font-medium text-accent-600 hover:text-accent-700 disabled:opacity-40 transition-colors"
+              >
+                置顶推广 ↗
+              </button>
             </div>
 
             <button

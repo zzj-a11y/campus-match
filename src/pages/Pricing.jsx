@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Star, PushPin, Lightning, Eye, Circle, Check } from "@phosphor-icons/react";
 import { useAuth } from "../context/AuthContext";
@@ -8,12 +9,15 @@ import { motion } from "motion/react";
 export default function Pricing() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [upgrading, setUpgrading] = useState(false);
 
   const handleUpgrade = async (tier) => {
     if (!user) {
       navigate("/login");
       return;
     }
+    if (upgrading) return;
+    setUpgrading(true);
     try {
       await upgradeSubscription(tier);
       if (tier === "semester") {
@@ -27,6 +31,7 @@ export default function Pricing() {
       window.location.reload();
     } catch (e) {
       toast.error(e.message || "升级失败，请重试");
+      setUpgrading(false);
     }
   };
 
@@ -59,7 +64,8 @@ export default function Pricing() {
           ) : (
             <button
               onClick={() => handleUpgrade("yearly")}
-              className="inline-flex items-center px-6 py-3 mt-6 text-sm font-semibold text-white bg-accent-600 rounded-full hover:bg-accent-700 active:scale-[0.98] transition-all"
+              disabled={upgrading}
+              className="inline-flex items-center px-6 py-3 mt-6 text-sm font-semibold text-white bg-accent-600 rounded-full hover:bg-accent-700 active:scale-[0.98] transition-all disabled:opacity-40"
             >
               开始免费使用
             </button>
@@ -140,7 +146,7 @@ export default function Pricing() {
               </ul>
               <button
                 onClick={() => handleUpgrade("semester")}
-                disabled={isCurrentTier("semester")}
+                disabled={isCurrentTier("semester") || upgrading}
                 className={`mt-6 w-full py-2.5 text-sm font-semibold rounded-full active:scale-[0.98] transition-all ${
                   isCurrentTier("semester")
                     ? "text-accent-600 bg-accent-100 cursor-default"
@@ -181,7 +187,7 @@ export default function Pricing() {
               </ul>
               <button
                 onClick={() => handleUpgrade("yearly")}
-                disabled={isCurrentTier("yearly")}
+                disabled={isCurrentTier("yearly") || upgrading}
                 className={`mt-6 w-full py-2.5 text-sm font-semibold rounded-full active:scale-[0.98] transition-all ${
                   isCurrentTier("yearly")
                     ? "text-accent-600 bg-accent-100 cursor-default"
@@ -344,7 +350,8 @@ export default function Pricing() {
           ) : (
             <button
               onClick={() => handleUpgrade("yearly")}
-              className="inline-flex items-center px-6 py-3 mt-6 text-sm font-semibold text-white bg-accent-600 rounded-full hover:bg-accent-700 active:scale-[0.98] transition-all"
+              disabled={upgrading}
+              className="inline-flex items-center px-6 py-3 mt-6 text-sm font-semibold text-white bg-accent-600 rounded-full hover:bg-accent-700 active:scale-[0.98] transition-all disabled:opacity-40"
             >
               开始免费使用
             </button>

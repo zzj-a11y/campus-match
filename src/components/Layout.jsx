@@ -20,7 +20,7 @@ export default function Layout() {
       ) : (
         <MeshGradient
           className="fixed inset-0 w-full h-full z-0 pointer-events-none"
-          colors={["#f0fdfa", "#ccfbf1", "#0d9488", "#f0fdfa"]}
+          colors={["#f8fafc", "#ccfbf1", "#0f766e", "#f8fafc"]}
           speed={0.2}
           backgroundColor="transparent"
         />

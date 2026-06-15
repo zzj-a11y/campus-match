@@ -400,21 +400,20 @@ export default function Profile() {
               <div className="flex justify-center py-4">
                 <div className="w-5 h-5 border-2 border-accent-600 border-t-transparent rounded-full animate-spin" />
               </div>
-            ) : profileVisits.length === 0 ? (
-              <p className="text-sm text-[#a8a29e]">暂无访客记录</p>
             ) : user?.subscription_tier === "free" ? (
               <div>
-                <p className="text-sm text-[#78716c]">共 {profileVisits.length} 人看过</p>
-                <div className="mt-2 flex items-center gap-2">
-                  <span className="text-xs text-[#a8a29e]">升级会员后解锁</span>
+                <p className="text-sm text-[#78716c]">
+                  共 {profileVisits.length} 人看过 · 升级会员后查看具体列表 ·{" "}
                   <Link
                     to="/pricing"
-                    className="text-xs font-medium text-accent-600 hover:text-accent-700 transition-colors"
+                    className="font-medium text-accent-600 hover:text-accent-700 transition-colors"
                   >
-                    升级会员 &rarr;
+                    升级会员 →
                   </Link>
-                </div>
+                </p>
               </div>
+            ) : profileVisits.length === 0 ? (
+              <p className="text-sm text-[#a8a29e]">暂无访客记录</p>
             ) : (
               <div className="space-y-3">
                 {profileVisits.map((v, i) => (

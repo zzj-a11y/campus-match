@@ -34,15 +34,17 @@ export default function Nav() {
   return (
     <nav className="sticky top-0 z-50 h-16 border-b border-[#e7e5e4] dark:border-slate-700 bg-[#fafaf9]/95 dark:bg-slate-900/95 backdrop-blur-sm">
       <div className="max-w-[1280px] mx-auto h-full px-6 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2.5 no-underline">
-          <span className="font-display text-xl font-extrabold text-[#0d9488] tracking-tight">
-            校园智搭
-          </span>
-          <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-white bg-accent-600 rounded-lg card-hover whitespace-nowrap">
-            GPNU · 校园组队
-          </span>
+        <div className="flex items-center gap-2.5">
+          <Link to="/" className="flex items-center gap-2.5 no-underline">
+            <span className="font-display text-xl font-extrabold text-[#0d9488] tracking-tight">
+              校园智搭
+            </span>
+            <span className="hidden sm:inline-flex items-center px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-white bg-accent-600 rounded-lg card-hover whitespace-nowrap">
+              GPNU · 校园组队
+            </span>
+          </Link>
           <ThemeToggle checked={theme === "dark"} onChange={toggle} />
-        </Link>
+        </div>
 
         <div className="flex items-center gap-6">
           <Link

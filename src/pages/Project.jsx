@@ -57,6 +57,7 @@ export default function Project() {
   const [draggedId, setDraggedId] = useState(null);
   const [showNewTask, setShowNewTask] = useState(false);
   const [newTitle, setNewTitle] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -123,13 +124,14 @@ export default function Project() {
   };
 
   const handleAddTask = async () => {
-    if (!newTitle.trim()) return;
+    if (!newTitle.trim() || submitting) return;
+    setSubmitting(true);
     try {
       await addTask(projectId, newTitle.trim());
       setNewTitle("");
       setShowNewTask(false);
       refresh();
-    } catch (e) { console.error("Add task failed:", e); }
+    } catch (e) { console.error("Add task failed:", e); } finally { setSubmitting(false); }
   };
 
   return (
@@ -220,7 +222,8 @@ export default function Project() {
                   <div className="flex items-center gap-2 mt-2">
                     <button
                       onClick={handleAddTask}
-                      className="px-3 py-1 text-xs font-semibold text-white bg-accent-600 rounded-full hover:bg-accent-700 transition-colors"
+                      disabled={submitting}
+                      className="px-3 py-1 text-xs font-semibold text-white bg-accent-600 rounded-full hover:bg-accent-700 transition-colors disabled:opacity-40"
                     >
                       添加
                     </button>

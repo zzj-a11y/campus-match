@@ -24,6 +24,9 @@ export default function Chat() {
   const [loading, setLoading] = useState(true);
   const [partner, setPartner] = useState({ name: "队友", avatar: "队" });
   const [slowHint, setSlowHint] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   // 加载用户和消息
   useEffect(() => {
@@ -82,7 +85,8 @@ export default function Chat() {
   }, [messages, scrollToBottom]);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || sending) return;
+    setSending(true);
     try {
       const myMsg = await sendMessage(matchId, input.trim());
       setMessages((prev) => [...prev, myMsg]);
@@ -90,6 +94,8 @@ export default function Chat() {
     } catch (e) {
       toast.error("消息发送失败，请重试");
       console.error("sendMessage failed:", e);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -101,6 +107,8 @@ export default function Chat() {
   };
 
   const handleCreateProject = async () => {
+    if (creating) return;
+    setCreating(true);
     try {
       const project = await createProject(matchId, partner.name);
       toast.success("项目创建成功！");
@@ -108,18 +116,23 @@ export default function Chat() {
     } catch (e) {
       toast.error(e?.message || "创建项目失败，请重试");
       console.error("createProject failed:", e);
+      setCreating(false);
     }
   };
 
   const handleShareWechat = async () => {
+    if (sharing) return;
     const wxId = user.wechat || "未设置微信号";
     if (!window.confirm(`确定要分享你的微信号「${wxId}」给对方吗？`)) return;
+    setSharing(true);
     try {
       const myMsg = await sendMessage(matchId, `我的微信号：${wxId}`);
       setMessages((prev) => [...prev, myMsg]);
     } catch (e) {
       toast.error("分享微信失败，请重试");
       console.error("shareWechat failed:", e);
+    } finally {
+      setSharing(false);
     }
   };
 
@@ -157,14 +170,16 @@ export default function Chat() {
         <div className="flex items-center gap-2">
           <button
             onClick={handleShareWechat}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-accent-600 bg-accent-50 rounded-full border border-accent-200 hover:bg-accent-100 active:scale-[0.98] transition-all"
+            disabled={sharing}
+            className="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-accent-600 bg-accent-50 rounded-full border border-accent-200 hover:bg-accent-100 active:scale-[0.98] transition-all disabled:opacity-40"
             title="分享你的微信号给对方"
           >
             分享微信
           </button>
           <button
             onClick={handleCreateProject}
-            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-accent-600 rounded-full no-underline hover:bg-accent-700 active:scale-[0.98] transition-all"
+            disabled={creating}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-accent-600 rounded-full no-underline hover:bg-accent-700 active:scale-[0.98] transition-all disabled:opacity-40"
           >
             <Users size={16} weight="bold" />
             确认组队
@@ -224,7 +239,7 @@ export default function Chat() {
         />
         <button
           onClick={handleSend}
-          disabled={!input.trim()}
+          disabled={!input.trim() || sending}
           className="w-11 h-11 rounded-full bg-accent-600 flex items-center justify-center text-white disabled:opacity-40 hover:bg-accent-700 active:scale-90 transition-all"
         >
           <PaperPlaneTilt size={18} weight="bold" />

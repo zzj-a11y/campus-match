@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "motion/react";
 import { ArrowLeft, X, Heart, Faders, Sparkle, ChatCenteredDots, MagnifyingGlass, SortAscending, CaretDown } from "@phosphor-icons/react";
@@ -24,12 +24,13 @@ export default function Match() {
   const [showFilter, setShowFilter] = useState(false);
   const [filterGpa, setFilterGpa] = useState("不限");
   const [filterAward, setFilterAward] = useState("不限");
+  const timers = useRef({});
 
   useEffect(() => {
     let cancelled = false;
-    const slowTimer = setTimeout(() => { if (!cancelled) setSlowHint(true); }, 5000);
+    timers.current.slow = setTimeout(() => { if (!cancelled) setSlowHint(true); }, 5000);
     // 硬超时：10 秒后强制结束 loading
-    const hardTimer = setTimeout(() => { if (!cancelled) { setLoading(false); setSlowHint(false); } }, 10000);
+    timers.current.hard = setTimeout(() => { if (!cancelled) { setLoading(false); setSlowHint(false); } }, 10000);
     (async () => {
       try {
         const u = await getCurrentUser();
@@ -42,15 +43,21 @@ export default function Match() {
           getAllUsers().catch((e) => { console.error(e); return []; }),
         ]);
         if (cancelled) return;
-        clearTimeout(slowTimer);
-        clearTimeout(hardTimer);
+        clearTimeout(timers.current.slow);
+        clearTimeout(timers.current.hard);
         setCandidates(list);
         setMyMatches(matches);
         setAllUsers(all);
       } catch (e) { console.error(e); }
-      finally { if (!cancelled) { clearTimeout(hardTimer); setLoading(false); setSlowHint(false); } }
+      finally { if (!cancelled) { clearTimeout(timers.current.hard); setLoading(false); setSlowHint(false); } }
     })();
-    return () => { cancelled = true; clearTimeout(slowTimer); clearTimeout(hardTimer); };
+    return () => {
+      cancelled = true;
+      clearTimeout(timers.current.slow);
+      clearTimeout(timers.current.hard);
+      clearTimeout(timers.current.swipe);
+      clearTimeout(timers.current.popup);
+    };
   }, []);
 
   const current = candidates[index];
@@ -129,18 +136,25 @@ export default function Match() {
     if (direction === "right") {
       try {
         const result = await swipeRight(current.id);
-        if (result?.targetUser) { setMatchResult(result); setTimeout(() => setShowMatchPopup(true), 400); }
+        if (result?.targetUser) { setMatchResult(result); timers.current.popup = setTimeout(() => setShowMatchPopup(true), 400); }
       } catch (e) { console.error(e); }
     } else {
       try { await swipeLeft(current.id); } catch (e) { console.error(e); }
     }
-    setTimeout(() => { setIndex((i) => i + 1); setSwiping(null); setBtnLoading(false); }, 280);
+    timers.current.swipe = setTimeout(() => { setIndex((i) => i + 1); setSwiping(null); setBtnLoading(false); }, 280);
   };
 
-  const handleCardChat = () => {
+  const handleCardChat = async () => {
     if (btnLoading || !current) return;
     setBtnLoading(true);
-    contactAuthor(current.id).then((matchId) => navigate(`/chat/${matchId}`)).catch((e) => { console.error(e); setBtnLoading(false); });
+    try {
+      const matchId = await contactAuthor(current.id);
+      navigate(`/chat/${matchId}`);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setBtnLoading(false);
+    }
   };
 
   const goToChat = () => { setShowMatchPopup(false); navigate(`/chat/${matchResult.match.id}`); };
@@ -293,8 +307,8 @@ export default function Match() {
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {allUsers.length === 0 && <p className="col-span-full text-center text-sm text-[#78716c] py-8">暂无其他用户</p>}
                 {filteredAll.map((u) => (
-                <div key={u.id} onClick={() => { contactAuthor(u.id).then((matchId) => navigate(`/chat/${matchId}`)).catch(console.error); }}
-                  className="rounded-2xl border border-[#e7e5e4] bg-white p-4 text-center hover:shadow-[0_2px_8px_rgba(28,25,23,0.06)] hover:-translate-y-[1px] transition-all cursor-pointer">
+                <div key={u.id} onClick={() => { if (btnLoading) return; setBtnLoading(true); contactAuthor(u.id).then((matchId) => navigate(`/chat/${matchId}`)).catch((e) => { console.error(e); }).finally(() => setBtnLoading(false)); }}
+                  className={`rounded-2xl border border-[#e7e5e4] bg-white p-4 text-center hover:shadow-[0_2px_8px_rgba(28,25,23,0.06)] hover:-translate-y-[1px] transition-all ${btnLoading ? 'opacity-60 pointer-events-none' : 'cursor-pointer'}`}>
                   <div className="flex justify-center"><Avatar user={u} size={44} /></div>
                   <div className="mt-2 font-semibold text-sm text-[#1c1917]">{u.name}</div>
                   <div className="text-xs text-[#78716c]">{u.college}</div>

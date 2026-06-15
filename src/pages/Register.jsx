@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, ArrowRight, Plus, X } from "@phosphor-icons/react";
 import { useAuth } from "../context/AuthContext";
+import { useTheme } from "../context/ThemeContext";
 import { registerUser } from "../lib/dataStore";
 
 const skillOptions = [
@@ -45,6 +46,8 @@ const grades = ["大一", "大二", "大三", "大四", "研一", "研二"];
 export default function Register() {
   const navigate = useNavigate();
   const { user, loading: authLoading, signUp } = useAuth();
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
 
   // 已登录用户直接从技能步骤开始
   const [step, setStep] = useState(user ? 1 : 0);
@@ -224,7 +227,7 @@ export default function Register() {
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${
                   currentDisplayStep >= n
                     ? "bg-accent-600 text-white"
-                    : "bg-[#e7e5e4] text-[#78716c]"
+                    : `${isDark ? 'bg-slate-700 text-slate-400' : 'bg-[#e7e5e4] text-[#78716c]'}`
                 }`}
               >
                 {n}
@@ -232,18 +235,18 @@ export default function Register() {
               {i < progressSteps.length - 1 && (
                 <div
                   className={`flex-1 h-0.5 rounded transition-colors ${
-                    currentDisplayStep > n ? "bg-accent-600" : "bg-[#e7e5e4]"
+                    currentDisplayStep > n ? "bg-accent-600" : `${isDark ? 'bg-slate-700' : 'bg-[#e7e5e4]'}`
                   }`}
                 />
               )}
             </div>
           ))}
-          <span className="text-sm text-[#78716c] ml-2">
+          <span className={`text-sm ml-2 ${isDark ? 'text-slate-400' : 'text-[#78716c]'}`}>
             {currentDisplayStep}/{displayTotal}
           </span>
         </div>
         {/* 步骤标签 */}
-        <div className="flex mt-2 text-[11px] text-[#a8a29e]">
+        <div className={`flex mt-2 text-[11px] ${isDark ? 'text-slate-500' : 'text-[#a8a29e]'}`}>
           {["账号", "技能", "目标", "学院"].map((label, i) => (
             <span key={label} className="flex-1 text-center">{label}</span>
           ))}
@@ -252,7 +255,7 @@ export default function Register() {
 
       {/* Error */}
       {error && (
-        <div className="mb-6 p-3 rounded-lg bg-red-50 border border-red-200 text-sm text-red-700">
+        <div className={`mb-6 p-3 rounded-lg border text-sm ${isDark ? 'bg-red-900/30 border-red-800 text-red-400' : 'bg-red-50 border-red-200 text-red-700'}`}>
           {error}
         </div>
       )}
@@ -260,15 +263,15 @@ export default function Register() {
       {/* Step 0: 创建账号（仅新用户） */}
       {!user && step === 0 && (
         <div>
-          <h2 className="font-display text-2xl font-bold text-[#1c1917]">
+          <h2 className={`font-display text-2xl font-bold ${isDark ? 'text-slate-100' : 'text-[#1c1917]'}`}>
             创建你的账号
           </h2>
-          <p className="mt-1 text-sm text-[#78716c]">
+          <p className={`mt-1 text-sm ${isDark ? 'text-slate-400' : 'text-[#78716c]'}`}>
             注册后即可开始匹配队友
           </p>
           <div className="mt-6 space-y-4">
             <div>
-              <label className="block text-sm font-medium text-[#1c1917] mb-1.5">
+              <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-slate-100' : 'text-[#1c1917]'}`}>
                 你的姓名
               </label>
               <input
@@ -278,11 +281,11 @@ export default function Register() {
                 required
                 placeholder="怎么称呼你？"
                 maxLength={20}
-                className="w-full px-4 py-3 rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow"
+                className={`w-full px-4 py-3 rounded-lg border text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow ${isDark ? 'border-slate-600 bg-slate-700 text-slate-100' : 'border-[#e7e5e4] bg-white text-[#1c1917]'}`}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#1c1917] mb-1.5">
+              <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-slate-100' : 'text-[#1c1917]'}`}>
                 邮箱
               </label>
               <input
@@ -291,11 +294,11 @@ export default function Register() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="yourname@example.com"
-                className="w-full px-4 py-3 rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow"
+                className={`w-full px-4 py-3 rounded-lg border text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow ${isDark ? 'border-slate-600 bg-slate-700 text-slate-100' : 'border-[#e7e5e4] bg-white text-[#1c1917]'}`}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#1c1917] mb-1.5">
+              <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-slate-100' : 'text-[#1c1917]'}`}>
                 密码
               </label>
               <div className="relative">
@@ -305,19 +308,19 @@ export default function Register() {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   placeholder="至少 6 位字符"
-                  className="w-full px-4 py-3 pr-12 rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow"
+                  className={`w-full px-4 py-3 pr-12 rounded-lg border text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow ${isDark ? 'border-slate-600 bg-slate-700 text-slate-100' : 'border-[#e7e5e4] bg-white text-[#1c1917]'}`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#a8a29e] hover:text-[#78716c] text-xs font-medium transition-colors"
+                  className={`absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium transition-colors ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-[#a8a29e] hover:text-[#78716c]'}`}
                 >
                   {showPassword ? "隐藏" : "显示"}
                 </button>
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-[#1c1917] mb-1.5">
+              <label className={`block text-sm font-medium mb-1.5 ${isDark ? 'text-slate-100' : 'text-[#1c1917]'}`}>
                 确认密码
               </label>
               <input
@@ -326,11 +329,11 @@ export default function Register() {
                 onChange={(e) => setPasswordConfirm(e.target.value)}
                 required
                 placeholder="再次输入密码"
-                className={`w-full px-4 py-3 rounded-lg border bg-white text-[#1c1917] text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow ${
+                className={`w-full px-4 py-3 rounded-lg border text-sm placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow ${
                   passwordConfirm && password !== passwordConfirm
                     ? "border-red-300 ring-1 ring-red-200"
-                    : "border-[#e7e5e4]"
-                }`}
+                    : `${isDark ? 'border-slate-600' : 'border-[#e7e5e4]'}`
+                } ${isDark ? 'bg-slate-700 text-slate-100' : 'bg-white text-[#1c1917]'}`}
               />
               {passwordConfirm && password !== passwordConfirm && (
                 <p className="mt-1 text-xs text-red-500">两次输入的密码不一致</p>
@@ -343,10 +346,10 @@ export default function Register() {
       {/* Step 1: Skills */}
       {((user && step === 1) || (!user && step === 1)) && (
         <div>
-          <h2 className="font-display text-2xl font-bold text-[#1c1917]">
+          <h2 className={`font-display text-2xl font-bold ${isDark ? 'text-slate-100' : 'text-[#1c1917]'}`}>
             选 1-3 个你最擅长的技能
           </h2>
-          <p className="mt-1 text-sm text-[#78716c]">
+          <p className={`mt-1 text-sm ${isDark ? 'text-slate-400' : 'text-[#78716c]'}`}>
             已选 {skills.length}/3，至少选 1 个
           </p>
 
@@ -361,7 +364,7 @@ export default function Register() {
                   className={`px-4 py-2 text-sm font-medium rounded-lg border transition-all active:scale-95 ${
                     active
                       ? "bg-accent-100 text-accent-700 border-accent-300"
-                      : "bg-white text-[#78716c] border-[#e7e5e4] hover:border-[#a8a29e]"
+                      : `${isDark ? 'bg-slate-800 text-slate-400 border-slate-600 hover:border-slate-500' : 'bg-white text-[#78716c] border-[#e7e5e4] hover:border-[#a8a29e]'}`
                   }`}
                 >
                   {s}
@@ -391,12 +394,12 @@ export default function Register() {
               onChange={(e) => setCustomInput(e.target.value)}
               onKeyDown={handleCustomKeyDown}
               placeholder="输入自定义技能，按回车添加"
-              className="flex-1 px-4 py-2.5 text-sm rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow"
+              className={`flex-1 px-4 py-2.5 text-sm rounded-lg border placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow ${isDark ? 'border-slate-600 bg-slate-700 text-slate-100' : 'border-[#e7e5e4] bg-white text-[#1c1917]'}`}
             />
             <button
               onClick={addCustomSkill}
               disabled={!customInput.trim()}
-              className="inline-flex items-center gap-1 px-4 py-2.5 text-sm font-medium text-accent-600 bg-accent-50 rounded-lg border border-accent-200 hover:bg-accent-100 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className={`inline-flex items-center gap-1 px-4 py-2.5 text-sm font-medium rounded-lg border transition-colors disabled:opacity-40 disabled:cursor-not-allowed ${isDark ? 'text-accent-400 bg-accent-900/20 border-accent-800 hover:bg-accent-900/40' : 'text-accent-600 bg-accent-50 border-accent-200 hover:bg-accent-100'}`}
             >
               <Plus size={16} />
               添加
@@ -408,7 +411,7 @@ export default function Register() {
       {/* Step 2: Goal */}
       {((user && step === 2) || (!user && step === 2)) && (
         <div>
-          <h2 className="font-display text-2xl font-bold text-[#1c1917]">
+          <h2 className={`font-display text-2xl font-bold ${isDark ? 'text-slate-100' : 'text-[#1c1917]'}`}>
             你当前的目标是什么？
           </h2>
           <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -421,7 +424,7 @@ export default function Register() {
                   className={`p-4 rounded-xl border text-left transition-all active:scale-[0.98] ${
                     active
                       ? "bg-accent-100 text-accent-700 border-accent-400"
-                      : "bg-white text-[#1c1917] border-[#e7e5e4] hover:border-[#a8a29e]"
+                      : `${isDark ? 'bg-slate-800 text-slate-100 border-slate-600 hover:border-slate-500' : 'bg-white text-[#1c1917] border-[#e7e5e4] hover:border-[#a8a29e]'}`
                   }`}
                 >
                   <span className="font-semibold">{g.label}</span>
@@ -434,7 +437,7 @@ export default function Register() {
               className={`p-4 rounded-xl border text-left transition-all active:scale-[0.98] ${
                 customGoalActive
                   ? "bg-accent-100 text-accent-700 border-accent-400"
-                  : "bg-white text-[#1c1917] border-[#e7e5e4] hover:border-[#a8a29e]"
+                  : `${isDark ? 'bg-slate-800 text-slate-100 border-slate-600 hover:border-slate-500' : 'bg-white text-[#1c1917] border-[#e7e5e4] hover:border-[#a8a29e]'}`
               }`}
             >
               <span className="font-semibold">✏️ 自定义目标…</span>
@@ -447,11 +450,11 @@ export default function Register() {
                 value={customGoal}
                 onChange={(e) => setCustomGoal(e.target.value)}
                 placeholder="输入你的目标，如：考公准备、出国留学…"
-                className="flex-1 px-4 py-2.5 text-sm rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow"
+                className={`flex-1 px-4 py-2.5 text-sm rounded-lg border placeholder:text-[#a8a29e] focus:outline-none focus:ring-2 focus:ring-accent-400 transition-shadow ${isDark ? 'border-slate-600 bg-slate-700 text-slate-100' : 'border-[#e7e5e4] bg-white text-[#1c1917]'}`}
               />
               <button
                 onClick={() => { setCustomGoal(""); setCustomGoalActive(false); }}
-                className="px-3 py-2.5 text-sm text-[#78716c] hover:text-[#1c1917] transition-colors"
+                className={`px-3 py-2.5 text-sm transition-colors ${isDark ? 'text-slate-400 hover:text-slate-200' : 'text-[#78716c] hover:text-[#1c1917]'}`}
               >
                 <X size={16} />
               </button>
@@ -463,17 +466,17 @@ export default function Register() {
       {/* Step 3: School info */}
       {((user && step === 3) || (!user && step === 3)) && (
         <div>
-          <h2 className="font-display text-2xl font-bold text-[#1c1917]">
+          <h2 className={`font-display text-2xl font-bold ${isDark ? 'text-slate-100' : 'text-[#1c1917]'}`}>
             学院 / 年级
           </h2>
-          <p className="mt-1 text-sm text-[#78716c]">
+          <p className={`mt-1 text-sm ${isDark ? 'text-slate-400' : 'text-[#78716c]'}`}>
             帮你找到身边的队友
           </p>
           <div className="mt-6 flex flex-col sm:flex-row gap-4">
             <select
               value={college}
               onChange={(e) => setCollege(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] text-sm focus:outline-none focus:ring-2 focus:ring-accent-400"
+              className={`flex-1 px-4 py-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-accent-400 ${isDark ? 'border-slate-600 bg-slate-700 text-slate-100' : 'border-[#e7e5e4] bg-white text-[#1c1917]'}`}
             >
               <option value="">选择学院</option>
               {colleges.map((c) => (
@@ -483,7 +486,7 @@ export default function Register() {
             <select
               value={grade}
               onChange={(e) => setGrade(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-lg border border-[#e7e5e4] bg-white text-[#1c1917] text-sm focus:outline-none focus:ring-2 focus:ring-accent-400"
+              className={`flex-1 px-4 py-3 rounded-lg border text-sm focus:outline-none focus:ring-2 focus:ring-accent-400 ${isDark ? 'border-slate-600 bg-slate-700 text-slate-100' : 'border-[#e7e5e4] bg-white text-[#1c1917]'}`}
             >
               <option value="">选择年级</option>
               {grades.map((g) => (
@@ -500,7 +503,7 @@ export default function Register() {
           {step > (user ? 1 : 0) ? (
             <button
               onClick={() => setStep(step - 1)}
-              className="inline-flex items-center gap-1 px-4 py-2 text-sm font-medium text-[#78716c] rounded-full hover:text-[#1c1917] transition-colors"
+              className={`inline-flex items-center gap-1 px-4 py-2 text-sm font-medium rounded-full transition-colors ${isDark ? 'text-slate-400 hover:text-slate-200' : 'text-[#78716c] hover:text-[#1c1917]'}`}
             >
               <ArrowLeft size={16} /> 上一步
             </button>
@@ -512,14 +515,14 @@ export default function Register() {
             <button
               onClick={() => step < 3 ? handleNext() : handleFinish()}
               disabled={saving}
-              className="text-xs text-[#a8a29e] hover:text-[#78716c] transition-colors ml-2"
+              className={`text-xs transition-colors ml-2 ${isDark ? 'text-slate-500 hover:text-slate-300' : 'text-[#a8a29e] hover:text-[#78716c]'}`}
             >
               {saving ? "保存中..." : "稍后再说 →"}
             </button>
           )}
         </div>
 
-        <p className="text-sm text-[#78716c]">
+        <p className={`text-sm ${isDark ? 'text-slate-400' : 'text-[#78716c]'}`}>
           已有账号？{" "}
           <Link to="/login" className="text-accent-600 font-medium hover:underline">
             去登录
